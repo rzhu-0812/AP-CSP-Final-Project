@@ -66,15 +66,16 @@ def enemy_behavior():
     global on_field_enemies
     on_field_enemies = [enemy for enemy in on_field_enemies if enemy.health > 0]
 
+# player used to move 5
 def player_movement():
     if keyboard.W or keyboard.up:
-        player.y = max(player.y - 5, 0 + 38)
+        player.y = max(player.y - 3, 0 + 38)
     elif keyboard.S or keyboard.down:
-        player.y = min(player.y + 5, HEIGHT - 38)
+        player.y = min(player.y + 3, HEIGHT - 38)
     if keyboard.A or keyboard.left:
-        player.x = max(player.x - 5, 0 + 38)
+        player.x = max(player.x - 3, 0 + 38)
     elif keyboard.D or keyboard.right:
-        player.x = min(player.x + 5, WIDTH - 38)
+        player.x = min(player.x + 3, WIDTH - 38)
 
 def spell_behavior():
     global spells
@@ -120,8 +121,8 @@ def update():
 
 # Game start
 enemy_constants = {
-    "Normal": {"distance_per_move": 4, "resting_time": 0, "health": 5, "damage": 1},
-    "Fast": {"distance_per_move": 10, "resting_time": 20, "health": 3, "damage": 1}
+    "Normal": {"distance_per_move": 2, "resting_time": 0, "health": 5, "damage": 1}, # distance per move originally: 4
+    "Fast": {"distance_per_move": 5, "resting_time": 20, "health": 3, "damage": 1} # distance per move originally: 10
 }
 enemy_actors = {
     "Normal": Actor("enemy_placeholder"),
@@ -136,4 +137,5 @@ for enemy in enemies:
 spells = []
 equipped_spell = "spell_placeholder"
 
+clock.schedule_interval(update, 1.0 / 60.0)
 pgzrun.go()
