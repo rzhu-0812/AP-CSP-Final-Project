@@ -18,6 +18,13 @@ big_tiles = [Actor("big_tile", pos=((i * 300) + 150, (j * 300) + 150)) for i in 
 
 # Classes
 class Enemy:
+    summon_cooldowns = {
+        "orc": 1.0,
+        "goblin": 0.3,
+        "bat": 0.6,
+        "assasin": 0.9,
+        "vampire": 1.5
+    }
     def __init__(self, enemy_type, sprite, distance_per_move, health, damage):
         self.enemy_type = enemy_type
         self.sprite = sprite
@@ -29,6 +36,21 @@ class Enemy:
 
     def spawn_at_center(self):
         self.sprite.pos = (CENTER_X, CENTER_Y)
+"""
+class Vampire(Enemy):
+    def __init__(self, enemy_type, sprite, distance_per_move, health, damage):
+        self.enemy_type = enemy_type
+        self.sprite = sprite
+        self.distance_per_move = distance_per_move
+        self.health - health
+        self.damage = damage
+        self.teleport()
+    def teleport():
+        #for spell in spells():
+            #if vampire.sprite.colliderect(spell):
+        vampire.x = random.randint(200, 1000)
+        vampire.y = random.randint(200, 400)
+"""
 
 class Spell:
     spell_cooldowns = {
@@ -62,10 +84,11 @@ goblin = 3
 bat = 2
 assasin = 5
 vampire = 10
+speed_factor = 0.3
 
 unchanging_types_of_enemies = [orc, goblin, bat, assasin, vampire]
 changing_types_of_enemies = [orc, goblin, bat, assasin, vampire]
-print(changing_types_of_enemies)
+#print(changing_types_of_enemies)
 
 level_strength = -1
 wave_number = -1
@@ -78,6 +101,7 @@ selected_enemies_for_next_level = []
 #select_enemies_for_next_level_counter = 0
 
 def select_enemies_for_next_level():
+    #counter = 0
     global level_strength
     global changing_types_of_enemies
     #print(level_strength)
@@ -91,7 +115,12 @@ def select_enemies_for_next_level():
                     
                    # print(namestr(enemy, globals()))
 
-        if max(changing_types_of_enemies) <= abs(level_strength):
+        if len(changing_types_of_enemies) > 0:
+
+            if max(changing_types_of_enemies) <= abs(level_strength):
+                done = True
+
+        else:
             done = True
 
             
@@ -99,12 +128,21 @@ def select_enemies_for_next_level():
     #print(changing_types_of_enemies)
 
     while abs(level_strength) > 0:
-        for enemy in changing_types_of_enemies:
-            x = random.randint(0, len(changing_types_of_enemies) - 1)
-            print(x)
-            print(max(changing_types_of_enemies))
+        #for enemy in changing_types_of_enemies:
+        #print(level_strength)
+        if level_strength > 0:
+            level_strength = 0
+        if level_strength == 0:
+            break
+        x = random.randint(0, len(changing_types_of_enemies) - 1)
+        #print(x)
+        #print(max(changing_types_of_enemies))
+        if changing_types_of_enemies[x] <= abs(level_strength):
+            #print(changing_types_of_enemies[x])
+            #print(namestr(changing_types_of_enemies[x], globals()))
             selected_enemies_for_next_level.append(changing_types_of_enemies[x])
             #print(selected_enemies_for_next_level)
+            #print("hello")
             level_strength += changing_types_of_enemies[x]
             
 
@@ -112,23 +150,55 @@ def select_enemies_for_next_level():
     for selected_enemy_for_next_level in selected_enemies_for_next_level:
         #print(namestr(selected_enemy_for_next_level, globals()))
         pass
-        
-"""
+    #print(selected_enemies_for_next_level)
+    
 def reset_for_next_wave():
     global changing_types_of_enemies
+    global unchanging_types_of_enemies
     global wave_number
+    global level_strength
     changing_types_of_enemies.clear()
-    changing_types_of_enemies = unchanging_types_of_enemies
-    wave_number += 1
+    changing_types_of_enemies = [orc, goblin, bat, assasin, vampire]
+    selected_enemies_for_next_level.clear()
+    #print(unchanging_types_of_enemies)
+    #print(changing_types_of_enemies)
+    wave_number -= 1
     level_strength = wave_number
+    print(level_strength)
+    #print(random.randint(0, len(changing_types_of_enemies) - 1))
 
+
+summon_cooldown = 50
 def summon_next_wave():
-    for selected_enemy_for_next_level in selected_enemies_for_next_level:
-        pass
-        #print(namestr(selected_enemy_for_next_level, globals()))
-        #on_field_enemies.append(Enemy(namestr(selected_enemy_for_next_level, globals()), enemy_actors.get(enemy), **enemy_constants[enemy]))
-"""
+    global summon_cooldown
+    while len(selected_enemies_for_next_level) > 0:
+        for enemy in selected_enemies_for_next_level:
+            #pass
+            print(namestr(enemy, globals()))
+            if summon_cooldown <= 0:
+                summon_cooldown = 50
+                if enemy == orc:
+                    on_field_enemies.append(Enemy("orc", enemy_actors.get("orc"), **enemy_constants["orc"] ) )
+                    selected_enemies_for_next_level.remove(enemy)
+                elif enemy == goblin:
+                    on_field_enemies.append(Enemy("goblin", enemy_actors.get("goblin"), **enemy_constants["goblin"] ) )
+                    selected_enemies_for_next_level.remove(enemy)
+                elif enemy == bat:
+                    on_field_enemies.append(Enemy("bat", enemy_actors.get("bat"), **enemy_constants["bat"] ) )
+                    selected_enemies_for_next_level.remove(enemy)
+                elif enemy == assasin:
+                    on_field_enemies.append(Enemy("assasin", enemy_actors.get("assasin"), **enemy_constants["assasin"] ) )
+                    selected_enemies_for_next_level.remove(enemy)
+                elif enemy == vampire:
+                    on_field_enemies.append(Enemy("vampire", enemy_actors.get("vampire"), **enemy_constants["vampire"] ) )
+                    selected_enemies_for_next_level.remove(enemy)
+            else:
+                summon_cooldown -= 1
 
+                
+#for enemy in selected_enemies_for_next_level:
+
+    print(type(namestr(enemy, globals())))
 def create_and_target_spell(mouse_pos, x, y, spell_type):
     spell = Spell(Actor(spell_type), 10, 500, False, spell_type, 1)
     spell.sprite.pos = (x, y)
@@ -139,15 +209,17 @@ def create_and_target_spell(mouse_pos, x, y, spell_type):
     spells.append(spell)
 
 def enemy_movement():
+    global speed_factor
     for enemy in on_field_enemies:
         angle = math.atan2(player.y - enemy.sprite.y, player.x - enemy.sprite.x)
-        speed_factor = 0.3
         enemy.sprite.move_ip(math.cos(angle) * enemy.distance_per_move * speed_factor,
                              math.sin(angle) * enemy.distance_per_move * speed_factor)
 
 def enemy_behavior():
     global on_field_enemies
     on_field_enemies = [enemy for enemy in on_field_enemies if enemy.health > 0]
+    #if enemy == Vampire:
+        #enemy.teleport()
 
 def player_movement():
     if keyboard.W or keyboard.up:
@@ -158,9 +230,6 @@ def player_movement():
         player.x = max(player.x - 2, 0 + 38)
     elif keyboard.D or keyboard.right:
         player.x = min(player.x + 2, WIDTH - 38)
-
-        #summon_next_wave()
-        #reset_for_next_wave()
 
 def spell_behavior():
     global spells
@@ -176,6 +245,7 @@ def spell_behavior():
                     enemy.health -= spell.spell_damage
                     if enemy.health <= 0:
                         on_field_enemies.remove(enemy)
+                        enemy = object()
                     if spell in spells:
                         spells.remove(spell)
 
@@ -202,6 +272,9 @@ def on_mouse_down(pos):
 def on_key_up(key):
     if key == keys.SPACE:
         select_enemies_for_next_level()
+        summon_next_wave()
+        reset_for_next_wave()
+        print(len(on_field_enemies))
 
 def update():
     events = pygame.event.get()
@@ -212,33 +285,38 @@ def update():
 
 # Game start
 enemy_constants = {
-    "Orc": {"distance_per_move": 2, "health": 5, "damage": 1},
-    "Goblin": {"distance_per_move": 6, "health": 3, "damage": 1},
-    "Bat": {"distance_per_move": 5,  "health": 3, "damage": 1},
-    "Assasin": {"distance_per_move": 3, "health": 4, "damage": 2},
-    "Vampire": {"distance_per_move": 1, "health": 10, "damage": 2}
+    "orc": {"distance_per_move": 2, "health": 5, "damage": 1},
+    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1},
+    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1},
+    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2},
+    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2}
 }
 enemy_actors = {
-    "Orc": Actor("orc_enemy_placeholder"),
-    "Goblin": Actor("goblin_enemy_placeholder"),
-    "Bat": Actor("bat_enemy_placeholder"),
-    "Assasin": Actor("assasin_enemy_placeholder"),
-    "Vampire": Actor("vampire_enemy_placeholder")
+    "orc": Actor("orc_enemy_placeholder"),
+    "goblin": Actor("goblin_enemy_placeholder"),
+    "bat": Actor("bat_enemy_placeholder"),
+    "assasin": Actor("assasin_enemy_placeholder"),
+    "vampire": Actor("vampire_enemy_placeholder")
 }
 
-enemies = ["Orc", "Bat", "Goblin", "Assasin", "Vampire"]
+enemies = ["orc", "orc", "bat", "goblin", "assasin", "vampire"]
 #print(enemies[1])
 #print(enemies)
 
-"""
+
 for enemy in enemies:
-    on_field_enemies.append(Enemy(enemy, enemy_actors.get(enemy), **enemy_constants[enemy]))
+    #if enemy == "vampire":
+    #on_field_enemies.append(Vampire(enemy, enemy_actors.get(enemy), **enemy_constants[enemy] ) )
+    #else:
+    on_field_enemies.append(Enemy(enemy, enemy_actors.get(enemy), **enemy_constants[enemy] ) )
     print(namestr(on_field_enemies, globals() ) )
-"""
+    
+for enemy in selected_enemies_for_next_level:
+    on_field_enemies.append(Enemy(namestr(enemy, globals()), enemy_actors.get(namestr(enemy, globals()), **enemy_constants[enemy] ) ) )
 
 
 spells = []
 equipped_spell = "spell_placeholder"
 
-clock.schedule_interval(update, 1.0 / 60.0)
+clock.schedule_interval(update, 1.0 / 30.0)
 pgzrun.go()
