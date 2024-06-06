@@ -15,6 +15,9 @@ cooldown = 0.1
 tiles = [Actor("tile", pos=((j * 100) + 50, (i * 100) + 50)) for i in range(int(HEIGHT / 100)) for j in range(int(WIDTH / 100))]
 big_tiles = [Actor("big_tile", pos=((i * 300) + 150, (j * 300) + 150)) for i in range(3) for j in range(2)]
 
+def namestr(obj, namespace):
+    return [name for name in namespace if namespace[name] is obj]
+
 enemy_constants = {
     "Placeholder": {"distance_per_move": 4, "resting_time": 1, "vision": 200, "health": 3, "damage": 1}
 }
@@ -90,7 +93,8 @@ def select_enemies_for_next_level():
             level_strength -= changing_types_of_enemies[x]
 
     print(level_strength)
-    print(selected_enemies_for_next_level)
+    for selected_enemy_for_next_level in selected_enemies_for_next_level:
+        print(namestr(selected_enemy_for_next_level, globals()))
         
 
 def reset_for_next_wave():
