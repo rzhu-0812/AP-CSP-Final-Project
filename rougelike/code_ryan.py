@@ -46,6 +46,52 @@ last_spell_cast_time = 0
 on_field_enemies = []
 
 # Functions
+def namestr(obj, namespace):
+    return [name for name in namespace if namespace[name] is obj]
+
+#on_field_enemies = [Enemy("Placeholder", Actor("enemy_placeholder"), **enemy_constants["Placeholder"]) for _ in range(1)]
+
+#enemy = Enemy("Placeholder", Actor("enemy_placeholder", **enemy_constants["Placeholder"]))
+#on_field_enemies.append(enemy)
+
+placeholder_enemy = 1
+orc = 1
+goblin = 3
+bat = 2
+assasin = 5
+vampire = 10
+
+level_strength = 87
+wave_number = 1
+
+unchanging_types_of_enemies = [placeholder_enemy, orc, goblin, bat, assasin]
+changing_types_of_enemies = [placeholder_enemy, orc, goblin, bat, assasin]
+selected_enemies_for_next_level = []
+
+def select_enemies_for_next_level():
+    global level_strength
+    while level_strength > 0:
+        for enemy in changing_types_of_enemies:
+            if enemy > level_strength:
+                changing_types_of_enemies.remove(enemy)
+        print(changing_types_of_enemies)
+        for enemy in changing_types_of_enemies:
+            x = random.randint(0, len(changing_types_of_enemies) - 1)
+            print(x)
+            selected_enemies_for_next_level.append(changing_types_of_enemies[x])
+            level_strength -= changing_types_of_enemies[x]
+
+    print(level_strength)
+    for selected_enemy_for_next_level in selected_enemies_for_next_level:
+        print(namestr(selected_enemy_for_next_level, globals()))
+        
+
+def reset_for_next_wave():
+    changing_types_of_enemies.clear()
+    changing_types_of_enemies = unchanging_types_of_enemies
+    wave_number += 1
+    level_strength = wave_number
+
 def create_and_target_spell(mouse_pos, x, y, spell_type):
     spell = Spell(Actor(spell_type), 10, 500, False, spell_type, 1)
     spell.sprite.pos = (x, y)
@@ -75,6 +121,9 @@ def player_movement():
         player.x = max(player.x - 2, 0 + 38)
     elif keyboard.D or keyboard.right:
         player.x = min(player.x + 2, WIDTH - 38)
+
+    if keyboard.space:
+        select_enemies_for_next_level()
 
 def spell_behavior():
     global spells
