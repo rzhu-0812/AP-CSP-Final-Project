@@ -15,11 +15,10 @@ big_tiles = [Actor("big_tile", pos=((i * 300) + 150, (j * 300) + 150)) for i in 
 
 # Classes
 class Enemy:
-    def __init__(self, enemy_type, sprite, distance_per_move, resting_time, health, damage):
+    def __init__(self, enemy_type, sprite, distance_per_move, health, damage):
         self.enemy_type = enemy_type
         self.sprite = sprite
         self.distance_per_move = distance_per_move
-        self.resting_time = resting_time
         self.health = health
         self.damage = damage
         self.spawn_at_center()
@@ -120,15 +119,15 @@ def update():
 
 # Game start
 enemy_constants = {
-    "Normal": {"distance_per_move": 2, "resting_time": 0, "health": 5, "damage": 1},
-    "Fast": {"distance_per_move": 5, "resting_time": 20, "health": 3, "damage": 1}
+    "Normal": {"distance_per_move": 2, "health": 5, "damage": 1},
+    "Fast": {"distance_per_move": 5, "health": 3, "damage": 1}
 }
 enemy_actors = {
     "Normal": Actor("enemy_placeholder"),
     "Fast": Actor("enemy_placeholder")
 }
 
-enemies = ["Normal", "Normal", "Fast"]
+enemies = ["Normal", "Fast"]
 for enemy in enemies:
     on_field_enemies.append(Enemy(enemy, enemy_actors.get(enemy), **enemy_constants[enemy]))
 
