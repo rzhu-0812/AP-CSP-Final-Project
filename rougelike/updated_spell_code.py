@@ -194,12 +194,16 @@ def enemy_behavior():
 
 # Main game loop
 def draw():
+    counter = 0
     screen.clear() # type: ignore
     for tile in tiles:
         tile.draw()
     player.sprite.draw()
     for enemy in on_field_enemies:
         enemy.sprite.draw()
+        if enemy == "orc":
+            coutner += 1
+        print(counter)
     for spell in spells:
         spell.sprite.draw()
     screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black") # type: ignore
@@ -258,7 +262,7 @@ for enemy in enemies:
 player = Player()
 
 spells = []
-equipped_spell = "spell_3"
+equipped_spell = "spell_1"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()

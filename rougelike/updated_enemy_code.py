@@ -55,7 +55,7 @@ class Vampire(Enemy):
 
 class Spell:
     spell_cooldowns = {
-        "spell_1": 0.1
+        "spell_placeholder": 0.1
     }
 
     def __init__(self, sprite, speed, spell_range, delete, spell_type, spell_damage):
@@ -267,12 +267,16 @@ def spell_behavior():
 
 # Main game loop
 def draw():
+    counter = 0
     screen.clear()
     for tile in tiles:
         tile.draw()
     player.draw()
     for enemy in on_field_enemies:
         enemy.sprite.draw()
+        if enemy == "orc":
+            counter += 1
+        print(counter)
     for spell in spells:
         spell.sprite.draw()
 
@@ -332,7 +336,7 @@ for enemy in selected_enemies_for_next_level:
 
 
 spells = []
-equipped_spell = "spell_1"
+equipped_spell = "spell_placeholder"
 
 clock.schedule_interval(update, 1.0 / 15.0)
 pgzrun.go()
