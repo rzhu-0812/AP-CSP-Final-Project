@@ -1,7 +1,8 @@
 import pgzrun
 import math
-import random
 import time
+
+from pgzhelper import Actor
 
 # Constants
 WIDTH = 1200
@@ -10,7 +11,6 @@ CENTER_X = WIDTH / 2
 CENTER_Y = HEIGHT / 2
 
 # Actors
-player = Actor("player_placeholder")
 tiles = [Actor("tile", pos=((j * 100) + 50, (i * 100) + 50)) for i in range(int(HEIGHT / 100)) for j in range(int(WIDTH / 100))]
 big_tiles = [Actor("big_tile", pos=((i * 300) + 150, (j * 300) + 150)) for i in range(3) for j in range(2)]
 
@@ -30,24 +30,57 @@ spell_constants = {
     },
     "spell_3": {
         "speed": 3,
-        "range": 1000,
-        "cooldown": 1.5,
+        "range": 10000,
+        "cooldown": 1.25,
         "damage": 0.5
     }
 }
 
 # Classes
+class Player:
+    def __init__(self):
+        self.sprite = Actor("player_placeholder")
+        self.sprite.pos = (38, 38)
+        self.health = 3
+    
+    def player_movement(self):
+        if keyboard.W or keyboard.up: # type: ignore
+            self.sprite.y = max(self.sprite.y - 2, 0 + 38)
+        elif keyboard.S or keyboard.down: # type: ignore
+            self.sprite.y = min(self.sprite.y + 2, HEIGHT - 38)
+        if keyboard.A or keyboard.left: # type: ignore
+            self.sprite.x = max(self.sprite.x - 2, 0 + 38)
+        elif keyboard.D or keyboard.right: # type: ignore
+            self.sprite.x = min(self.sprite.x + 2, WIDTH - 38)
+    
+    def take_damage(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            print("You Died")
+            quit()
+        
 class Enemy:
-    def __init__(self, enemy_type, sprite, distance_per_move, health, damage):
+    def __init__(self, enemy_type, sprite, distance_per_move, health, damage, attack_cooldown):
         self.enemy_type = enemy_type
         self.sprite = sprite
         self.distance_per_move = distance_per_move
         self.health = health
         self.damage = damage
+        self.attack_cooldown = attack_cooldown
+        self.last_attack_time = 0
         self.spawn_at_center()
 
     def spawn_at_center(self):
         self.sprite.pos = (CENTER_X, CENTER_Y)
+    
+    def can_attack(self):
+        current_time = time.time()
+        return current_time - self.last_attack_time >= self.attack_cooldown
+
+    def attack(self):
+        if self.can_attack():
+            player.take_damage(self.damage)
+            self.last_attack_time = time.time()
 
 class Spell:
     def __init__(self, sprite, spell_type):
@@ -97,22 +130,22 @@ class Spell_3(Spell):
     def move(self):
         self.sprite.x += self.direction_x * self.speed
         self.sprite.y += self.direction_y * self.speed
-        self.range += self.speed
+        self.range -= self.speed
 
-        if self.range <= 0 or self.bounces > self.bounce_limit:
+        if self.range <= 0 or self.bounces >= self.bounce_limit:
             spells.remove(self)
             return
 
         hit_enemy = None
         for enemy in on_field_enemies:
-            if self.sprite.colliderect(enemy.sprite) and enemy not in self.enemies_hit:
+            if self.sprite.colliderect(enemy.sprite) and (self.previous_enemy is None or enemy != self.previous_enemy):
                 hit_enemy = enemy
                 break
         
         if hit_enemy:
             hit_enemy.health -= self.damage
             if hit_enemy.health <= 0:
-                on_field_enemies.remove(enemy)
+                on_field_enemies.remove(hit_enemy)
             self.enemies_hit.add(hit_enemy)
             self.bounce_off_enemy(hit_enemy)
             self.bounces += 1
@@ -124,9 +157,7 @@ class Spell_3(Spell):
             self.direction_x *= -1
         if self.sprite.top <= 0 or self.sprite.bottom >= HEIGHT:
             self.direction_y *= -1
-        
-        if self.previous_enemy and not self.sprite.colliderect(self.previous_enemy.sprite):
-            self.enemies_hit.remove(self.previous_enemy)
+    
 
     def bounce_off_enemy(self, enemy):
         # Calculate new direction based on the position of the enemy
@@ -136,69 +167,22 @@ class Spell_3(Spell):
         spell_center_y = self.sprite.y + self.sprite.height / 2
 
         if enemy_center_x > spell_center_x:
-            self.direction_x = -1  # Change direction to left
+            self.direction_x = -self.speed  # Change direction to left
         elif enemy_center_x < spell_center_x:
-            self.direction_x = 1  # Change direction to right
+            self.direction_x = self.speed  # Change direction to right
 
         if enemy_center_y > spell_center_y:
-            self.direction_y = -1  # Change direction to up
+            self.direction_y = -self.speed  # Change direction to up
         elif enemy_center_y < spell_center_y:
-            self.direction_y = 1  # Change direction to down
+            self.direction_y = self.speed  # Change direction to down
 
 # Game state
 last_spell_cast_time = 0
 on_field_enemies = []
 
-# Functions
-def namestr(obj, namespace):
-    return [name for name in namespace if namespace[name] is obj]
-
-#on_field_enemies = [Enemy("Placeholder", Actor("enemy_placeholder"), **enemy_constants["Placeholder"]) for _ in range(1)]
-
-#enemy = Enemy("Placeholder", Actor("enemy_placeholder", **enemy_constants["Placeholder"]))
-#on_field_enemies.append(enemy)
-
-placeholder_enemy = 1
-orc = 1
-goblin = 3
-bat = 2
-assasin = 5
-vampire = 10
-
-level_strength = 87
-wave_number = 1
-
-unchanging_types_of_enemies = [placeholder_enemy, orc, goblin, bat, assasin]
-changing_types_of_enemies = [placeholder_enemy, orc, goblin, bat, assasin]
-selected_enemies_for_next_level = []
-
-def select_enemies_for_next_level():
-    global level_strength
-    while level_strength > 0:
-        for enemy in changing_types_of_enemies:
-            if enemy > level_strength:
-                changing_types_of_enemies.remove(enemy)
-        print(changing_types_of_enemies)
-        for enemy in changing_types_of_enemies:
-            x = random.randint(0, len(changing_types_of_enemies) - 1)
-            print(x)
-            selected_enemies_for_next_level.append(changing_types_of_enemies[x])
-            level_strength -= changing_types_of_enemies[x]
-
-    print(level_strength)
-    for selected_enemy_for_next_level in selected_enemies_for_next_level:
-        print(namestr(selected_enemy_for_next_level, globals()))
-        
-
-def reset_for_next_wave():
-    changing_types_of_enemies.clear()
-    changing_types_of_enemies = unchanging_types_of_enemies
-    wave_number += 1
-    level_strength = wave_number
-
 def enemy_movement():
     for enemy in on_field_enemies:
-        angle = math.atan2(player.y - enemy.sprite.y, player.x - enemy.sprite.x)
+        angle = math.atan2(player.sprite.y - enemy.sprite.y, player.sprite.x - enemy.sprite.x)
         speed_factor = 0.3
         enemy.sprite.move_ip(math.cos(angle) * enemy.distance_per_move * speed_factor,
                              math.sin(angle) * enemy.distance_per_move * speed_factor)
@@ -207,29 +191,17 @@ def enemy_behavior():
     global on_field_enemies
     on_field_enemies = [enemy for enemy in on_field_enemies if enemy.health > 0]
 
-def player_movement():
-    if keyboard.W or keyboard.up:
-        player.y = max(player.y - 2, 0 + 38)
-    elif keyboard.S or keyboard.down:
-        player.y = min(player.y + 2, HEIGHT - 38)
-    if keyboard.A or keyboard.left:
-        player.x = max(player.x - 2, 0 + 38)
-    elif keyboard.D or keyboard.right:
-        player.x = min(player.x + 2, WIDTH - 38)
-
-    if keyboard.space:
-        select_enemies_for_next_level()
-
 # Main game loop
 def draw():
-    screen.clear()
+    screen.clear() # type: ignore
     for tile in tiles:
         tile.draw()
-    player.draw()
+    player.sprite.draw()
     for enemy in on_field_enemies:
         enemy.sprite.draw()
     for spell in spells:
         spell.sprite.draw()
+    screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black")
 
 def on_mouse_down(pos):
     global last_spell_cast_time
@@ -241,7 +213,7 @@ def on_mouse_down(pos):
             spell = Spell_3(Actor(equipped_spell), equipped_spell)
         else:
             spell = Spell(Actor(equipped_spell), equipped_spell)
-        spell.sprite.pos = (player.x, player.y)
+        spell.sprite.pos = (player.sprite.x, player.sprite.y)
         spell.targetx, spell.targety = pos
         spell.angle = math.atan2(spell.targety - spell.sprite.y, spell.targetx - spell.sprite.x)
         spell.direction_x = math.cos(spell.angle) * spell.speed
@@ -250,8 +222,12 @@ def on_mouse_down(pos):
         last_spell_cast_time = current_time
 
 def update():
-    player_movement()
+    player.player_movement()
     enemy_movement()
+    for enemy in on_field_enemies:
+        if player.sprite.colliderect(enemy.sprite):
+            if enemy.can_attack():
+                enemy.attack()
     for spell in spells:
         if isinstance(spell, Spell_3):
             spell.move()
@@ -260,21 +236,28 @@ def update():
 
 # Game start
 enemy_constants = {
-    "Normal": {"distance_per_move": 2, "health": 5, "damage": 1},
-    "Fast": {"distance_per_move": 5, "health": 3, "damage": 1}
+    "orc": {"distance_per_move": 2, "health": 5, "damage": 1, "attack_cooldown": 1},
+    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1, "attack_cooldown": 1},
+    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1, "attack_cooldown": 1},
+    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2, "attack_cooldown": 1},
+    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2, "attack_cooldown": 1}
 }
 enemy_actors = {
-    "Normal": Actor("enemy_placeholder"),
-    "Fast": Actor("enemy_placeholder")
+    "orc": Actor("orc_enemy_placeholder"),
+    "goblin": Actor("goblin_enemy_placeholder"),
+    "bat": Actor("bat_enemy_placeholder"),
+    "assasin": Actor("assasin_enemy_placeholder"),
+    "vampire": Actor("vampire_enemy_placeholder")
 }
 
-enemies = ["Normal", "Fast"]
+enemies = ["bat"]
 for enemy in enemies:
     on_field_enemies.append(Enemy(enemy, enemy_actors.get(enemy), **enemy_constants[enemy]))
 
+player = Player()
 
 spells = []
 equipped_spell = "spell_3"
 
-clock.schedule_interval(update, 1.0 / 60.0)
+clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
