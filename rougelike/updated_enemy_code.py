@@ -55,7 +55,7 @@ class Vampire(Enemy):
 
 class Spell:
     spell_cooldowns = {
-        "spell_placeholder": 0.1
+        "spell_1": 0.1
     }
 
     def __init__(self, sprite, speed, spell_range, delete, spell_type, spell_damage):
@@ -332,7 +332,7 @@ for enemy in selected_enemies_for_next_level:
 
 
 spells = []
-equipped_spell = "spell_placeholder"
+equipped_spell = "spell_1"
 
 clock.schedule_interval(update, 1.0 / 15.0)
 pgzrun.go()
