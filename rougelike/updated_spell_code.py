@@ -9,12 +9,12 @@ WIDTH = 1200
 HEIGHT = 600
 CENTER_X = WIDTH / 2
 CENTER_Y = HEIGHT / 2
+TILE_SIZE = 100
 
 # Actors
-tiles = [Actor("tile", pos=((j * 100) + 50, (i * 100) + 50)) for i in range(int(HEIGHT / 100)) for j in range(int(WIDTH / 100))]
-big_tiles = [Actor("big_tile", pos=((i * 300) + 150, (j * 300) + 150)) for i in range(3) for j in range(2)]
+tiles = [Actor("tile", pos=((j * TILE_SIZE) + 50, (i * TILE_SIZE) + 50)) for i in range(int(HEIGHT / TILE_SIZE)) for j in range(int(WIDTH / 100))]
 
-# Spells
+# Constants
 spell_constants = {
     "spell_1": {
         "speed": 10,
@@ -33,6 +33,44 @@ spell_constants = {
         "range": 10000,
         "cooldown": 0,
         "damage": 0.5
+    }
+}
+
+enemy_constants = {
+    "orc": {
+        "actor": Actor("orc_enemy_placeholder"),  
+        "distance_per_move": 2, 
+        "health": 5, 
+        "damage": 1, 
+        "attack_cooldown": 5
+    },
+    "goblin": {
+        "actor": Actor("goblin_enemy_placeholder"),
+        "distance_per_move": 6, 
+        "health": 3, 
+        "damage": 1, 
+        "attack_cooldown": 5
+    },
+    "bat": {
+        "actor": Actor("bat_enemy_placeholder"),
+        "distance_per_move": 5,  
+        "health": 3, 
+        "damage": 1, 
+        "attack_cooldown": 5
+    },
+    "assasin": {
+        "actor": Actor("assasin_enemy_placeholder"),
+        "distance_per_move": 3, 
+        "health": 4, 
+        "damage": 2, 
+        "attack_cooldown": 10
+    },
+    "vampire": {
+        "actor": Actor("vampire_enemy_placeholder"),
+        "distance_per_move": 1, 
+        "health": 10, 
+        "damage": 2, 
+        "attack_cooldown": 10
     }
 }
 
@@ -60,13 +98,14 @@ class Player:
             quit()
         
 class Enemy:
-    def __init__(self, enemy_type, sprite, distance_per_move, health, damage, attack_cooldown):
+    def __init__(self, enemy_type):
+        constants = enemy_constants[enemy_type]
         self.enemy_type = enemy_type
-        self.sprite = sprite
-        self.distance_per_move = distance_per_move
-        self.health = health
-        self.damage = damage
-        self.attack_cooldown = attack_cooldown
+        self.sprite = constants["actor"]
+        self.distance_per_move = constants["distance_per_move"]
+        self.health = constants["health"]
+        self.damage = constants["damage"]
+        self.attack_cooldown = constants["attack_cooldown"]
         self.last_attack_time = 0
         self.spawn_at_center()
 
@@ -235,25 +274,9 @@ def update():
         else:
             spell.move()
 
-# Game start
-enemy_constants = {
-    "orc": {"distance_per_move": 2, "health": 5, "damage": 1, "attack_cooldown": 5},
-    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1, "attack_cooldown": 5},
-    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1, "attack_cooldown": 5},
-    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2, "attack_cooldown": 10},
-    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2, "attack_cooldown": 10}
-}
-enemy_actors = {
-    "orc": Actor("orc_enemy_placeholder"),  
-    "goblin": Actor("goblin_enemy_placeholder"),
-    "bat": Actor("bat_enemy_placeholder"),
-    "assasin": Actor("assasin_enemy_placeholder"),
-    "vampire": Actor("vampire_enemy_placeholder")
-}
-
 enemies = ["orc", "goblin", "bat", "assasin", "vampire"]
 for enemy in enemies:
-    on_field_enemies.append(Enemy(enemy, enemy_actors.get(enemy), **enemy_constants[enemy]))
+    on_field_enemies.append(Enemy(enemy))
 
 player = Player()
 
