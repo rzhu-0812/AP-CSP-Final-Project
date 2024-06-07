@@ -201,6 +201,13 @@ def summon_next_wave():
             else:
                 summon_cooldown -= 1
     print(on_field_enemies)
+
+    for enemy in on_field_enemies:
+        if enemy == "orc":
+            #enemy.x = random.randint(-400, 400) + CENTER_X
+            counter += 1
+            print(enemy.sprite.x)
+
     print(counter)
             #print(summon_cooldown)
 
