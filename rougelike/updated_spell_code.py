@@ -29,7 +29,7 @@ spell_constants = {
         "damage": 0.75
     },
     "spell_3": {
-        "speed": 3,
+        "speed": 2,
         "range": 10000,
         "cooldown": 1.25,
         "damage": 0.5
@@ -108,7 +108,8 @@ class Spell:
                     enemy.health -= self.damage
                     if enemy.health <= 0:
                         on_field_enemies.remove(enemy)
-                    spells.remove(self)
+                    if self in spells:
+                        spells.remove(self)
         
         if self.spell_type == "spell_2":
             for enemy in on_field_enemies:
@@ -201,7 +202,7 @@ def draw():
         enemy.sprite.draw()
     for spell in spells:
         spell.sprite.draw()
-    screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black")
+    screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black") # type: ignore
 
 def on_mouse_down(pos):
     global last_spell_cast_time
@@ -236,21 +237,21 @@ def update():
 
 # Game start
 enemy_constants = {
-    "orc": {"distance_per_move": 2, "health": 5, "damage": 1, "attack_cooldown": 1},
-    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1, "attack_cooldown": 1},
-    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1, "attack_cooldown": 1},
-    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2, "attack_cooldown": 1},
-    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2, "attack_cooldown": 1}
+    "orc": {"distance_per_move": 2, "health": 5, "damage": 1, "attack_cooldown": 2},
+    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1, "attack_cooldown": 2},
+    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1, "attack_cooldown": 2},
+    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2, "attack_cooldown": 4},
+    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2, "attack_cooldown": 4}
 }
 enemy_actors = {
-    "orc": Actor("orc_enemy_placeholder"),
+    "orc": Actor("orc_enemy_placeholder"),  
     "goblin": Actor("goblin_enemy_placeholder"),
     "bat": Actor("bat_enemy_placeholder"),
     "assasin": Actor("assasin_enemy_placeholder"),
     "vampire": Actor("vampire_enemy_placeholder")
 }
 
-enemies = ["bat"]
+enemies = ["orc", "goblin", "bat", "assasin", "vampire"]
 for enemy in enemies:
     on_field_enemies.append(Enemy(enemy, enemy_actors.get(enemy), **enemy_constants[enemy]))
 
