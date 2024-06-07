@@ -29,9 +29,9 @@ spell_constants = {
         "damage": 0.75
     },
     "spell_3": {
-        "speed": 2,
+        "speed": 5,
         "range": 10000,
-        "cooldown": 1.25,
+        "cooldown": 0,
         "damage": 0.5
     }
 }
@@ -237,11 +237,11 @@ def update():
 
 # Game start
 enemy_constants = {
-    "orc": {"distance_per_move": 2, "health": 5, "damage": 1, "attack_cooldown": 2},
-    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1, "attack_cooldown": 2},
-    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1, "attack_cooldown": 2},
-    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2, "attack_cooldown": 4},
-    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2, "attack_cooldown": 4}
+    "orc": {"distance_per_move": 2, "health": 5, "damage": 1, "attack_cooldown": 5},
+    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1, "attack_cooldown": 5},
+    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1, "attack_cooldown": 5},
+    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2, "attack_cooldown": 10},
+    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2, "attack_cooldown": 10}
 }
 enemy_actors = {
     "orc": Actor("orc_enemy_placeholder"),  
