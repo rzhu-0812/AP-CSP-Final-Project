@@ -35,7 +35,8 @@ class Enemy:
 
 
     def spawn_at_center(self):
-        self.sprite.pos = (CENTER_X, CENTER_Y)
+        self.sprite.x = CENTER_X + random.randint(-400, 400)
+        self.sprite.y = CENTER_Y
 """
 class Vampire(Enemy):
     def __init__(self, enemy_type, sprite, distance_per_move, health, damage):
@@ -164,22 +165,26 @@ def reset_for_next_wave():
     #print(changing_types_of_enemies)
     wave_number -= 1
     level_strength = wave_number
-    print(level_strength)
+    #print(level_strength)
     #print(random.randint(0, len(changing_types_of_enemies) - 1))
 
 
-summon_cooldown = 50
+summon_cooldown = 500
 def summon_next_wave():
+    counter = 0
     global summon_cooldown
     while len(selected_enemies_for_next_level) > 0:
         for enemy in selected_enemies_for_next_level:
             #pass
-            print(namestr(enemy, globals()))
             if summon_cooldown <= 0:
-                summon_cooldown = 50
+                #print(namestr(enemy, globals()))
+                summon_cooldown = 50000
                 if enemy == orc:
+                    counter += 1
                     on_field_enemies.append(Enemy("orc", enemy_actors.get("orc"), **enemy_constants["orc"] ) )
+                    #print(Enemy("orc", enemy_actors.get("orc"), **enemy_constants["orc"] ))
                     selected_enemies_for_next_level.remove(enemy)
+                    #print(selected_enemies_for_next_level)
                 elif enemy == goblin:
                     on_field_enemies.append(Enemy("goblin", enemy_actors.get("goblin"), **enemy_constants["goblin"] ) )
                     selected_enemies_for_next_level.remove(enemy)
@@ -192,13 +197,17 @@ def summon_next_wave():
                 elif enemy == vampire:
                     on_field_enemies.append(Enemy("vampire", enemy_actors.get("vampire"), **enemy_constants["vampire"] ) )
                     selected_enemies_for_next_level.remove(enemy)
+                    
             else:
                 summon_cooldown -= 1
+    print(on_field_enemies)
+    print(counter)
+            #print(summon_cooldown)
 
                 
 #for enemy in selected_enemies_for_next_level:
 
-    print(type(namestr(enemy, globals())))
+    #print(type(namestr(enemy, globals())))
 def create_and_target_spell(mouse_pos, x, y, spell_type):
     spell = Spell(Actor(spell_type), 10, 500, False, spell_type, 1)
     spell.sprite.pos = (x, y)
@@ -274,7 +283,7 @@ def on_key_up(key):
         select_enemies_for_next_level()
         summon_next_wave()
         reset_for_next_wave()
-        print(len(on_field_enemies))
+        #print(len(on_field_enemies))
 
 def update():
     events = pygame.event.get()
@@ -318,5 +327,5 @@ for enemy in selected_enemies_for_next_level:
 spells = []
 equipped_spell = "spell_placeholder"
 
-clock.schedule_interval(update, 1.0 / 30.0)
+clock.schedule_interval(update, 1.0 / 15.0)
 pgzrun.go()
