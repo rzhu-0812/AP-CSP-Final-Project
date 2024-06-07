@@ -267,12 +267,16 @@ def spell_behavior():
 
 # Main game loop
 def draw():
+    counter = 0
     screen.clear()
     for tile in tiles:
         tile.draw()
     player.draw()
     for enemy in on_field_enemies:
         enemy.sprite.draw()
+        if enemy == "orc":
+            counter += 1
+        print(counter)
     for spell in spells:
         spell.sprite.draw()
 
