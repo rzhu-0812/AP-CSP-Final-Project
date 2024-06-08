@@ -41,7 +41,7 @@ class Enemy():
     type = ""
     x = CENTER_X
     y = CENTER_Y
-    sprite = Actor("enemy_placeholder")
+    sprite = Actor("orc_enemy_placeholder")
     sprite.pos = (x, y)
     sprite_height = 0
     sprite_width = 0
@@ -65,11 +65,11 @@ class Placeholder_Enemy(Enemy):
 """
 
 
-
+"""
 enemy = Enemy
 #enemy.sprite = "enemy_placeholder"
 enemy.type = "Placeholder"
-enemy.sprite = Actor("enemy_placeholder")
+enemy.sprite = Actor("orc_enemy_placeholder")
 enemy.sprite.pos = (CENTER_X, CENTER_Y)
 enemy.sprite_height = 75
 enemy.sprite_width = 75
@@ -78,6 +78,21 @@ enemy.resting_time = enemy_constants[0][2]
 enemy.vision = enemy_constants[0][3]
 
 enemies = [enemy]
+
+"""
+enemies = []
+for i in range(3):
+    enemy = Enemy
+    #enemy.sprite = "enemy_placeholder"
+    enemy.type = "Placeholder"
+    enemy.sprite = Actor("orc_enemy_placeholder")
+    enemy.sprite.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
+    enemy.sprite_height = 75
+    enemy.sprite_width = 75
+    enemy.distance_per_move = enemy_constants[0][1]
+    enemy.resting_time = enemy_constants[0][2]
+    enemy.vision = enemy_constants[0][3]
+    enemies.append(enemy)
 
 def enemy_movement():
     enemy_resting_time()
