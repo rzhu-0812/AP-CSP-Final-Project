@@ -16,22 +16,22 @@ tiles = [Actor("tile", pos=((j * TILE_SIZE) + 50, (i * TILE_SIZE) + 50)) for i i
 
 # Constants
 spell_constants = {
-    "spell_1": {
+    "direct_shot": {
         "speed": 10,
         "range": 400,
         "cooldown": 0.75,
         "damage": 1
     },
-    "spell_2": {
+    "penetrating_shot": {
         "speed": 5,
         "range": 600,
         "cooldown": 1,
         "damage": 0.75
     },
-    "spell_3": {
-        "speed": 5,
+    "bounce_shot": {
+        "speed": 3,
         "range": 10000,
-        "cooldown": 0,
+        "cooldown": 1.5,
         "damage": 0.5
     }
 }
@@ -74,7 +74,7 @@ enemy_constants = {
     }
 }
 
-# Classes
+# Player Class
 class Player:
     def __init__(self):
         self.sprite = Actor("player_placeholder")
@@ -96,7 +96,8 @@ class Player:
         if self.health <= 0:
             print("You Died")
             quit()
-        
+
+# Enemy Class  
 class Enemy:
     def __init__(self, enemy_type):
         constants = enemy_constants[enemy_type]
@@ -120,7 +121,24 @@ class Enemy:
         if self.can_attack():
             player.take_damage(self.damage)
             self.last_attack_time = time.time()
+    
+    def enemy_movement(self):
+        angle = math.atan2(player.sprite.y - self.sprite.y, player.sprite.x - self.sprite.x)
+        speed_factor = 0.3
+        self.sprite.move_ip(math.cos(angle) * self.distance_per_move * speed_factor,
+                             math.sin(angle) * self.distance_per_move * speed_factor)
 
+    @classmethod 
+    # A classmethod is a method bound to a class, but not an instance of a class. It takes in cls (class) instead of self as parameter.
+    def update_enemies(cls):
+        for enemy in on_field_enemies:
+            enemy.enemy_movement()
+            if player.sprite.colliderect(enemy.sprite):
+                if enemy.can_attack():
+                    enemy.attack()
+        on_field_enemies[:] = [enemy for enemy in on_field_enemies if enemy.health > 0]
+
+# Spell Classes
 class Spell:
     def __init__(self, sprite, spell_type):
         constants = spell_constants[spell_type]
@@ -140,27 +158,44 @@ class Spell:
         if self.range <= 0:
             spells.remove(self)
             return
+    
+    def initialize_spell(self, player_pos, target_pos):
+        self.sprite.pos = player_pos
+        self.targetx, self.targety = target_pos
+        self.angle = math.atan2(self.targety - self.sprite.y, self.targetx - self.sprite.x)
+        self.direction_x = math.cos(self.angle) * self.speed
+        self.direction_y = math.sin(self.angle) * self.speed
 
-        if self.spell_type == "spell_1":
-            for enemy in on_field_enemies:
-                if self.sprite.colliderect(enemy.sprite):
-                    enemy.health -= self.damage
-                    if enemy.health <= 0:
-                        on_field_enemies.remove(enemy)
-                    if self in spells:
-                        spells.remove(self)
-        
-        if self.spell_type == "spell_2":
-            for enemy in on_field_enemies:
-                if self.sprite.colliderect(enemy.sprite) and enemy not in self.enemies_hit:
-                    enemy.health -= self.damage
-                    self.enemies_hit.add(enemy)
-                    if enemy.health <= 0:
-                        on_field_enemies.remove(enemy)
+class DirectShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "direct_shot")
+    
+    def move(self):
+        super().move()
+        for enemy in on_field_enemies:
+            if self.sprite.colliderect(enemy.sprite):
+                enemy.health -= self.damage
+                if enemy.health <= 0:
+                    on_field_enemies.remove(enemy)
+                if self in spells:
+                    spells.remove(self)
 
-class Spell_3(Spell):
-    def __init__(self, sprite, spell_type):
-        super().__init__(sprite, spell_type)
+class PenetratingShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "penetrating_shot")
+    
+    def move(self):
+        super().move()
+        for enemy in on_field_enemies:
+            if self.sprite.colliderect(enemy.sprite) and enemy not in self.enemies_hit:
+                enemy.health -= self.damage
+                self.enemies_hit.add(enemy)
+                if enemy.health <= 0:
+                    on_field_enemies.remove(enemy)
+
+class BounceShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "bounce_shot")
         self.direction_x = 1
         self.direction_y = 0
         self.bounce_limit = 3
@@ -197,7 +232,6 @@ class Spell_3(Spell):
             self.direction_x *= -1
         if self.sprite.top <= 0 or self.sprite.bottom >= HEIGHT:
             self.direction_y *= -1
-    
 
     def bounce_off_enemy(self, enemy):
         # Calculate new direction based on the position of the enemy
@@ -220,17 +254,6 @@ class Spell_3(Spell):
 last_spell_cast_time = 0
 on_field_enemies = []
 
-def enemy_movement():
-    for enemy in on_field_enemies:
-        angle = math.atan2(player.sprite.y - enemy.sprite.y, player.sprite.x - enemy.sprite.x)
-        speed_factor = 0.3
-        enemy.sprite.move_ip(math.cos(angle) * enemy.distance_per_move * speed_factor,
-                             math.sin(angle) * enemy.distance_per_move * speed_factor)
-
-def enemy_behavior():
-    global on_field_enemies
-    on_field_enemies = [enemy for enemy in on_field_enemies if enemy.health > 0]
-
 # Main game loop
 def draw():
     screen.clear() # type: ignore
@@ -249,30 +272,21 @@ def on_mouse_down(pos):
     current_time = time.time()
     equipped_spell_cooldown = spell_constants[equipped_spell]["cooldown"]
     if current_time - last_spell_cast_time >= equipped_spell_cooldown:
-        if equipped_spell == "spell_3":
-            spell = Spell_3(Actor(equipped_spell), equipped_spell)
-        else:
-            spell = Spell(Actor(equipped_spell), equipped_spell)
-        spell.sprite.pos = (player.sprite.x, player.sprite.y)
-        spell.targetx, spell.targety = pos
-        spell.angle = math.atan2(spell.targety - spell.sprite.y, spell.targetx - spell.sprite.x)
-        spell.direction_x = math.cos(spell.angle) * spell.speed
-        spell.direction_y = math.sin(spell.angle) * spell.speed
+        if equipped_spell == "direct_shot":
+            spell = DirectShot(Actor("direct_shot", pos=(player.sprite.x, player.sprite.y)))
+        elif equipped_spell == "penetrating_shot":
+            spell = PenetratingShot(Actor("penetrating_shot", pos=(player.sprite.x, player.sprite.y)))
+        elif equipped_spell == "bounce_shot":
+            spell = BounceShot(Actor("bounce_shot", pos=(player.sprite.x, player.sprite.y)))
+        spell.initialize_spell((player.sprite.x, player.sprite.y), pos)
         spells.append(spell)
         last_spell_cast_time = current_time
 
 def update():
     player.player_movement()
-    enemy_movement()
-    for enemy in on_field_enemies:
-        if player.sprite.colliderect(enemy.sprite):
-            if enemy.can_attack():
-                enemy.attack()
+    Enemy.update_enemies()
     for spell in spells:
-        if isinstance(spell, Spell_3):
-            spell.move()
-        else:
-            spell.move()
+        spell.move()
 
 enemies = ["orc", "goblin", "bat", "assasin", "vampire"]
 for enemy in enemies:
@@ -281,7 +295,7 @@ for enemy in enemies:
 player = Player()
 
 spells = []
-equipped_spell = "spell_1"
+equipped_spell = "bounce_shot"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
