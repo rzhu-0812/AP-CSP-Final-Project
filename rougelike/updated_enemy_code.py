@@ -97,6 +97,29 @@ def create_enemy(enemy_type):
         enemy.damage = 2
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
+    
+def vampire_bat_summon(vampire_x, vampire_y):
+    summon_amount = random.randint(0, 3)
+    for i in range(summon_amount):
+        enemy = Actor("bat_enemy_placeholder")
+        enemy.type = "bat"
+        enemy.distance_per_move = 5
+        enemy.health = 3
+        enemy.damage = 1
+        enemy.pos = (vampire_x + random.randint(-50, 50), vampire_y + random.randint(-50, 50))
+        on_field_enemies.append(enemy)
+
+
+def vampire_special():
+    """
+    for enemy in on_field_enemies:
+        for spell in spells:
+            if spell.sprite.colliderect(enemy):
+                if enemy.type == "vampire":
+                """
+    vampire_bat_summon(enemy.x, enemy.y)
+    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
+                        
         
 
 class Spell:
@@ -303,6 +326,9 @@ def spell_behavior():
         if spell.spell_type == "spell_placeholder":
             for enemy in on_field_enemies:
                 if spell.sprite.colliderect(enemy):
+                    if enemy.type == "vampire":
+                        vampire_bat_summon(enemy.x, enemy.y)
+                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                     enemy.health -= spell.spell_damage
                     if enemy.health <= 0:
                         on_field_enemies.remove(enemy)
@@ -343,6 +369,7 @@ def update():
     events = pygame.event.get()
     player_movement()
     enemy_movement()
+    #vampire_special()
     spell_behavior()
 
 
