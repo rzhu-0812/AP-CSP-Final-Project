@@ -1,5 +1,6 @@
 import pgzrun
 import math
+import random
 import time
 
 from pgzhelper import Actor
@@ -9,34 +10,79 @@ WIDTH = 1200
 HEIGHT = 600
 CENTER_X = WIDTH / 2
 CENTER_Y = HEIGHT / 2
+TILE_SIZE = 100
+
 
 # Actors
-tiles = [Actor("tile", pos=((j * 100) + 50, (i * 100) + 50)) for i in range(int(HEIGHT / 100)) for j in range(int(WIDTH / 100))]
-big_tiles = [Actor("big_tile", pos=((i * 300) + 150, (j * 300) + 150)) for i in range(3) for j in range(2)]
+tiles = [Actor("tile", pos=((j * TILE_SIZE) + 50, (i * TILE_SIZE) + 50)) for i in range(int(HEIGHT / TILE_SIZE)) for j in range(int(WIDTH / 100))]
 
-# Spells
+# Constants // Heres where you add monsters and spells
 spell_constants = {
-    "spell_1": {
+    "direct_shot": {
         "speed": 10,
         "range": 400,
         "cooldown": 0.75,
         "damage": 1
     },
-    "spell_2": {
+    "penetrating_shot": {
         "speed": 5,
         "range": 600,
         "cooldown": 1,
         "damage": 0.75
     },
-    "spell_3": {
-        "speed": 5,
-        "range": 10000,
-        "cooldown": 0,
+    "bounce_shot": {
+        "speed": 3,
+        "range": 5000,
+        "cooldown": 1.5,
+        "damage": 0.5
+    },
+    "chain_shot": {
+        "speed": 3,
+        "range": 2000,
+        "cooldown": 1.5,
         "damage": 0.5
     }
 }
 
-# Classes
+enemy_constants = {
+    "orc": {
+        "actor": Actor("orc_enemy_placeholder"),  
+        "distance_per_move": 2, 
+        "health": 5, 
+        "damage": 1, 
+        "attack_cooldown": 5
+    },
+    "goblin": {
+        "actor": Actor("goblin_enemy_placeholder"),
+        "distance_per_move": 6, 
+        "health": 3, 
+        "damage": 1, 
+        "attack_cooldown": 5
+    },
+    "bat": {
+        "actor": Actor("bat_enemy_placeholder"),
+        "distance_per_move": 5,  
+        "health": 3, 
+        "damage": 1, 
+        "attack_cooldown": 5
+    },
+    "assasin": {
+        "actor": Actor("assasin_enemy_placeholder"),
+        "distance_per_move": 3, 
+        "health": 4, 
+        "damage": 2, 
+        "attack_cooldown": 10
+    },
+    "vampire": {
+        "actor": Actor("vampire_enemy_placeholder"),
+        "distance_per_move": 1, 
+        "health": 10, 
+        "damage": 2, 
+        "attack_cooldown": 10
+    }
+}
+
+# Player Class
 class Player:
     def __init__(self):
         self.sprite = Actor("player_placeholder")
@@ -58,20 +104,31 @@ class Player:
         if self.health <= 0:
             print("You Died")
             quit()
-        
-class Enemy:
-    def __init__(self, enemy_type, sprite, distance_per_move, health, damage, attack_cooldown):
-        self.enemy_type = enemy_type
-        self.sprite = sprite
-        self.distance_per_move = distance_per_move
-        self.health = health
-        self.damage = damage
-        self.attack_cooldown = attack_cooldown
-        self.last_attack_time = 0
-        self.spawn_at_center()
 
-    def spawn_at_center(self):
-        self.sprite.pos = (CENTER_X, CENTER_Y)
+# Enemy Class  
+class Enemy:
+    def __init__(self, enemy_type, player):
+        constants = enemy_constants[enemy_type]
+        self.enemy_type = enemy_type
+        self.sprite = constants["actor"]
+        self.distance_per_move = constants["distance_per_move"]
+        self.health = constants["health"]
+        self.damage = constants["damage"]
+        self.attack_cooldown = constants["attack_cooldown"]
+        self.last_attack_time = 0
+        self.random_spawn()
+        self.player = player
+
+    def random_spawn(self):
+        min_distance = 200
+        while True:
+            self.sprite.x = random.randint(40, WIDTH - 40)
+            self.sprite.y = random.randint(40, HEIGHT - 40)
+            if self.distance_to_player() > min_distance:
+                break
+
+    def distance_to_player(self):
+        return math.sqrt((self.sprite.x - player.sprite.x) ** 2 + (self.sprite.y - player.sprite.y) ** 2)
     
     def can_attack(self):
         current_time = time.time()
@@ -81,7 +138,24 @@ class Enemy:
         if self.can_attack():
             player.take_damage(self.damage)
             self.last_attack_time = time.time()
+    
+    def enemy_movement(self):
+        angle = math.atan2(player.sprite.y - self.sprite.y, player.sprite.x - self.sprite.x)
+        speed_factor = 0.3
+        self.sprite.move_ip(math.cos(angle) * self.distance_per_move * speed_factor,
+                             math.sin(angle) * self.distance_per_move * speed_factor)
 
+    @classmethod 
+    # A classmethod is a method bound to a class, but not an instance of a class. It takes in cls (class) instead of self as parameter.
+    def update_enemies(cls):
+        for enemy in on_field_enemies:
+            enemy.enemy_movement()
+            if player.sprite.colliderect(enemy.sprite):
+                if enemy.can_attack():
+                    enemy.attack()
+        on_field_enemies[:] = [enemy for enemy in on_field_enemies if enemy.health > 0]
+
+# Spell Classes
 class Spell:
     def __init__(self, sprite, spell_type):
         constants = spell_constants[spell_type]
@@ -101,27 +175,44 @@ class Spell:
         if self.range <= 0:
             spells.remove(self)
             return
+    
+    def initialize_spell(self, player_pos, target_pos):
+        self.sprite.pos = player_pos
+        self.targetx, self.targety = target_pos
+        self.angle = math.atan2(self.targety - self.sprite.y, self.targetx - self.sprite.x)
+        self.direction_x = math.cos(self.angle) * self.speed
+        self.direction_y = math.sin(self.angle) * self.speed
 
-        if self.spell_type == "spell_1":
-            for enemy in on_field_enemies:
-                if self.sprite.colliderect(enemy.sprite):
-                    enemy.health -= self.damage
-                    if enemy.health <= 0:
-                        on_field_enemies.remove(enemy)
-                    if self in spells:
-                        spells.remove(self)
-        
-        if self.spell_type == "spell_2":
-            for enemy in on_field_enemies:
-                if self.sprite.colliderect(enemy.sprite) and enemy not in self.enemies_hit:
-                    enemy.health -= self.damage
-                    self.enemies_hit.add(enemy)
-                    if enemy.health <= 0:
-                        on_field_enemies.remove(enemy)
+class DirectShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "direct_shot")
+    
+    def move(self):
+        super().move()
+        for enemy in on_field_enemies:
+            if self.sprite.colliderect(enemy.sprite):
+                enemy.health -= self.damage
+                if enemy.health <= 0:
+                    on_field_enemies.remove(enemy)
+                if self in spells:
+                    spells.remove(self)
 
-class Spell_3(Spell):
-    def __init__(self, sprite, spell_type):
-        super().__init__(sprite, spell_type)
+class PenetratingShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "penetrating_shot")
+    
+    def move(self):
+        super().move()
+        for enemy in on_field_enemies:
+            if self.sprite.colliderect(enemy.sprite) and enemy not in self.enemies_hit:
+                enemy.health -= self.damage
+                self.enemies_hit.add(enemy)
+                if enemy.health <= 0:
+                    on_field_enemies.remove(enemy)
+
+class BounceShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "bounce_shot")
         self.direction_x = 1
         self.direction_y = 0
         self.bounce_limit = 3
@@ -158,7 +249,6 @@ class Spell_3(Spell):
             self.direction_x *= -1
         if self.sprite.top <= 0 or self.sprite.bottom >= HEIGHT:
             self.direction_y *= -1
-    
 
     def bounce_off_enemy(self, enemy):
         # Calculate new direction based on the position of the enemy
@@ -177,33 +267,58 @@ class Spell_3(Spell):
         elif enemy_center_y < spell_center_y:
             self.direction_y = self.speed  # Change direction to down
 
+class ChainShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "chain_shot")
+        self.chain_limit = 3
+        self.chains = 0
+    
+    def move(self):
+        self.sprite.x += self.direction_x * self.speed
+        self.sprite.y += self.direction_y * self.speed
+        self.range -= self.speed
+
+        if self.range <= 0 or self.chains >= self.chain_limit:
+            spells.remove(self)
+            return
+
+        for enemy in on_field_enemies:
+            if self.sprite.colliderect(enemy.sprite) and enemy not in self.enemies_hit:
+                enemy.health -= self.damage
+                self.enemies_hit.add(enemy)
+                self.chains += 1
+                if enemy.health <= 0:
+                    on_field_enemies.remove(enemy)
+                self.target_next_enemy(enemy)
+                break
+    
+    def target_next_enemy(self, current_enemy):
+        closest_enemy = None
+        min_distance = float("inf")
+        for enemy in on_field_enemies:
+            if enemy != current_enemy and enemy not in self.enemies_hit:
+                distance = math.sqrt((enemy.sprite.x - current_enemy.sprite.x)**2 + (enemy.sprite.y - current_enemy.sprite.y)**2)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_enemy = enemy
+        
+        if closest_enemy:
+            self.angle = math.atan2(closest_enemy.sprite.y - self.sprite.y, closest_enemy.sprite.x - self.sprite.x)
+            self.direction_x = math.cos(self.angle) * self.speed
+            self.direction_y = math.sin(self.angle) * self.speed
+
 # Game state
 last_spell_cast_time = 0
 on_field_enemies = []
 
-def enemy_movement():
-    for enemy in on_field_enemies:
-        angle = math.atan2(player.sprite.y - enemy.sprite.y, player.sprite.x - enemy.sprite.x)
-        speed_factor = 0.3
-        enemy.sprite.move_ip(math.cos(angle) * enemy.distance_per_move * speed_factor,
-                             math.sin(angle) * enemy.distance_per_move * speed_factor)
-
-def enemy_behavior():
-    global on_field_enemies
-    on_field_enemies = [enemy for enemy in on_field_enemies if enemy.health > 0]
-
 # Main game loop
 def draw():
-    counter = 0
     screen.clear() # type: ignore
     for tile in tiles:
         tile.draw()
     player.sprite.draw()
     for enemy in on_field_enemies:
         enemy.sprite.draw()
-        if enemy == "orc":
-            coutner += 1
-        print(counter)
     for spell in spells:
         spell.sprite.draw()
     screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black") # type: ignore
@@ -214,55 +329,32 @@ def on_mouse_down(pos):
     current_time = time.time()
     equipped_spell_cooldown = spell_constants[equipped_spell]["cooldown"]
     if current_time - last_spell_cast_time >= equipped_spell_cooldown:
-        if equipped_spell == "spell_3":
-            spell = Spell_3(Actor(equipped_spell), equipped_spell)
-        else:
-            spell = Spell(Actor(equipped_spell), equipped_spell)
-        spell.sprite.pos = (player.sprite.x, player.sprite.y)
-        spell.targetx, spell.targety = pos
-        spell.angle = math.atan2(spell.targety - spell.sprite.y, spell.targetx - spell.sprite.x)
-        spell.direction_x = math.cos(spell.angle) * spell.speed
-        spell.direction_y = math.sin(spell.angle) * spell.speed
+        if equipped_spell == "direct_shot":
+            spell = DirectShot(Actor("direct_shot", pos=(player.sprite.x, player.sprite.y)))
+        elif equipped_spell == "penetrating_shot":
+            spell = PenetratingShot(Actor("penetrating_shot", pos=(player.sprite.x, player.sprite.y)))
+        elif equipped_spell == "bounce_shot":
+            spell = BounceShot(Actor("bounce_shot", pos=(player.sprite.x, player.sprite.y)))
+        elif equipped_spell == "chain_shot":
+            spell = ChainShot(Actor("chain_shot", pos=(player.sprite.x, player.sprite.y)))
+        spell.initialize_spell((player.sprite.x, player.sprite.y), pos)
         spells.append(spell)
         last_spell_cast_time = current_time
 
 def update():
     player.player_movement()
-    enemy_movement()
-    for enemy in on_field_enemies:
-        if player.sprite.colliderect(enemy.sprite):
-            if enemy.can_attack():
-                enemy.attack()
+    Enemy.update_enemies()
     for spell in spells:
-        if isinstance(spell, Spell_3):
-            spell.move()
-        else:
-            spell.move()
-
-# Game start
-enemy_constants = {
-    "orc": {"distance_per_move": 2, "health": 5, "damage": 1, "attack_cooldown": 5},
-    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1, "attack_cooldown": 5},
-    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1, "attack_cooldown": 5},
-    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2, "attack_cooldown": 10},
-    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2, "attack_cooldown": 10}
-}
-enemy_actors = {
-    "orc": Actor("orc_enemy_placeholder"),  
-    "goblin": Actor("goblin_enemy_placeholder"),
-    "bat": Actor("bat_enemy_placeholder"),
-    "assasin": Actor("assasin_enemy_placeholder"),
-    "vampire": Actor("vampire_enemy_placeholder")
-}
-
-enemies = ["orc", "goblin", "bat", "assasin", "vampire"]
-for enemy in enemies:
-    on_field_enemies.append(Enemy(enemy, enemy_actors.get(enemy), **enemy_constants[enemy]))
+        spell.move()
 
 player = Player()
 
+enemies = ["orc", "goblin", "bat", "assasin", "vampire"]
+for enemy in enemies:
+    on_field_enemies.append(Enemy(enemy, player))
+
 spells = []
-equipped_spell = "spell_1"
+equipped_spell = "chain_shot"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
