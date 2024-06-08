@@ -14,7 +14,7 @@ TILE_SIZE = 100
 # Actors
 tiles = [Actor("tile", pos=((j * TILE_SIZE) + 50, (i * TILE_SIZE) + 50)) for i in range(int(HEIGHT / TILE_SIZE)) for j in range(int(WIDTH / 100))]
 
-# Constants
+# Constants // Heres where you add monsters and spells
 spell_constants = {
     "direct_shot": {
         "speed": 10,
