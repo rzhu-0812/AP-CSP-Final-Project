@@ -82,7 +82,7 @@ def create_enemy(enemy_type):
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "assasin":
-        enemy = Actor("goblin_enemy_placeholder")
+        enemy = Actor("assasin_enemy_placeholder")
         enemy.type = "assasin"
         enemy.distance_per_move = 3
         enemy.health = 4
@@ -90,7 +90,7 @@ def create_enemy(enemy_type):
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "vampire":
-        enemy = Actor("goblin_enemy_placeholder")
+        enemy = Actor("assasin_enemy_placeholder")
         enemy.type = "vampire"
         enemy.distance_per_move = 1
         enemy.health = 10
