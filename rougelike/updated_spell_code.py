@@ -1,5 +1,6 @@
 import pgzrun
 import math
+import random
 import time
 
 from pgzhelper import Actor
@@ -10,6 +11,7 @@ HEIGHT = 600
 CENTER_X = WIDTH / 2
 CENTER_Y = HEIGHT / 2
 TILE_SIZE = 100
+
 
 # Actors
 tiles = [Actor("tile", pos=((j * TILE_SIZE) + 50, (i * TILE_SIZE) + 50)) for i in range(int(HEIGHT / TILE_SIZE)) for j in range(int(WIDTH / 100))]
@@ -30,7 +32,13 @@ spell_constants = {
     },
     "bounce_shot": {
         "speed": 3,
-        "range": 10000,
+        "range": 5000,
+        "cooldown": 1.5,
+        "damage": 0.5
+    },
+    "chain_shot": {
+        "speed": 3,
+        "range": 2000,
         "cooldown": 1.5,
         "damage": 0.5
     }
@@ -99,7 +107,7 @@ class Player:
 
 # Enemy Class  
 class Enemy:
-    def __init__(self, enemy_type):
+    def __init__(self, enemy_type, player):
         constants = enemy_constants[enemy_type]
         self.enemy_type = enemy_type
         self.sprite = constants["actor"]
@@ -108,10 +116,19 @@ class Enemy:
         self.damage = constants["damage"]
         self.attack_cooldown = constants["attack_cooldown"]
         self.last_attack_time = 0
-        self.spawn_at_center()
+        self.random_spawn()
+        self.player = player
 
-    def spawn_at_center(self):
-        self.sprite.pos = (CENTER_X, CENTER_Y)
+    def random_spawn(self):
+        min_distance = 200
+        while True:
+            self.sprite.x = random.randint(40, WIDTH - 40)
+            self.sprite.y = random.randint(40, HEIGHT - 40)
+            if self.distance_to_player() > min_distance:
+                break
+
+    def distance_to_player(self):
+        return math.sqrt((self.sprite.x - player.sprite.x) ** 2 + (self.sprite.y - player.sprite.y) ** 2)
     
     def can_attack(self):
         current_time = time.time()
@@ -250,6 +267,46 @@ class BounceShot(Spell):
         elif enemy_center_y < spell_center_y:
             self.direction_y = self.speed  # Change direction to down
 
+class ChainShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "chain_shot")
+        self.chain_limit = 3
+        self.chains = 0
+    
+    def move(self):
+        self.sprite.x += self.direction_x * self.speed
+        self.sprite.y += self.direction_y * self.speed
+        self.range -= self.speed
+
+        if self.range <= 0 or self.chains >= self.chain_limit:
+            spells.remove(self)
+            return
+
+        for enemy in on_field_enemies:
+            if self.sprite.colliderect(enemy.sprite) and enemy not in self.enemies_hit:
+                enemy.health -= self.damage
+                self.enemies_hit.add(enemy)
+                self.chains += 1
+                if enemy.health <= 0:
+                    on_field_enemies.remove(enemy)
+                self.target_next_enemy(enemy)
+                break
+    
+    def target_next_enemy(self, current_enemy):
+        closest_enemy = None
+        min_distance = float("inf")
+        for enemy in on_field_enemies:
+            if enemy != current_enemy and enemy not in self.enemies_hit:
+                distance = math.sqrt((enemy.sprite.x - current_enemy.sprite.x)**2 + (enemy.sprite.y - current_enemy.sprite.y)**2)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_enemy = enemy
+        
+        if closest_enemy:
+            self.angle = math.atan2(closest_enemy.sprite.y - self.sprite.y, closest_enemy.sprite.x - self.sprite.x)
+            self.direction_x = math.cos(self.angle) * self.speed
+            self.direction_y = math.sin(self.angle) * self.speed
+
 # Game state
 last_spell_cast_time = 0
 on_field_enemies = []
@@ -278,6 +335,8 @@ def on_mouse_down(pos):
             spell = PenetratingShot(Actor("penetrating_shot", pos=(player.sprite.x, player.sprite.y)))
         elif equipped_spell == "bounce_shot":
             spell = BounceShot(Actor("bounce_shot", pos=(player.sprite.x, player.sprite.y)))
+        elif equipped_spell == "chain_shot":
+            spell = ChainShot(Actor("chain_shot", pos=(player.sprite.x, player.sprite.y)))
         spell.initialize_spell((player.sprite.x, player.sprite.y), pos)
         spells.append(spell)
         last_spell_cast_time = current_time
@@ -288,14 +347,14 @@ def update():
     for spell in spells:
         spell.move()
 
-enemies = ["orc", "goblin", "bat", "assasin", "vampire"]
-for enemy in enemies:
-    on_field_enemies.append(Enemy(enemy))
-
 player = Player()
 
+enemies = ["orc", "goblin", "bat", "assasin", "vampire"]
+for enemy in enemies:
+    on_field_enemies.append(Enemy(enemy, player))
+
 spells = []
-equipped_spell = "bounce_shot"
+equipped_spell = "chain_shot"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
