@@ -34,7 +34,7 @@ spell_constants = {
     "bounce_shot": {
         "speed": 3,
         "range": 5000,
-        "cooldown": 0.1,
+        "cooldown": 1,
         "damage": 0.5
     },
     "chain_shot": {
@@ -458,7 +458,7 @@ def on_mouse_down(pos):
 def on_key_up(key):
     global game_state
     if game_state == "Shop":
-        if key == keys.SPACE:
+        if key == keys.SPACE: # type: ignore
             select_enemies_for_next_level()
             summon_next_wave()
             reset_for_next_wave()
