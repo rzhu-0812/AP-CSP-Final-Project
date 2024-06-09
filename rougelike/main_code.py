@@ -187,11 +187,6 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
         on_field_enemies.append(enemy)
 
-
-def vampire_special():
-    vampire_bat_summon(enemy.x, enemy.y)
-    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
-
 # Spell Classes
 class Spell:
     def __init__(self, sprite, spell_type):
