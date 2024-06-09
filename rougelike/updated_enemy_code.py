@@ -99,6 +99,15 @@ def create_enemy(enemy_type):
         enemy.damage = 2
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
+    if enemy_type == "necromancer":
+        enemy = Actor("necromancer_enemy_placeholder")
+        enemy.type = "necromancer"
+        enemy.distance_per_move = 1
+        enemy.health = 15
+        enemy.damage = 0
+        enemy.ability_delay = 500
+        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
+        return(enemy)
     
 def vampire_bat_summon(vampire_x, vampire_y):
     summon_amount = random.randint(0, 3)
@@ -121,12 +130,23 @@ def vampire_special():
                 """
     vampire_bat_summon(enemy.x, enemy.y)
     enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
+
+def necromancer_skeleton_summon(necromancer_x, necromancer_y):
+    summon_amount = random.randint(2, 6)
+    for i in range(summon_amount):
+        enemy = Actor("skeleton_enemy_placeholder")
+        enemy.type = "skeleton"
+        enemy.distance_per_move = 3
+        enemy.health = 1
+        enemy.damage = 1
+        enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
+        on_field_enemies.append(enemy)
                         
         
 
 class Spell:
     spell_cooldowns = {
-        "spell_placeholder": 0.5
+        "spell_placeholder": 0.1
     }
 
     def __init__(self, sprite, speed, spell_range, delete, spell_type, spell_damage):
@@ -156,6 +176,7 @@ goblin = 3
 bat = 1
 assasin = 5
 vampire = 15
+necromancer = 30
 speed_factor = 0.3
 
 unchanging_types_of_enemies = [orc, goblin, bat, assasin, vampire]
@@ -220,8 +241,8 @@ def select_enemies_for_next_level():
 
     #print(level_strength)
     for selected_enemy_for_next_level in selected_enemies_for_next_level:
-        #print(namestr(selected_enemy_for_next_level, globals()))
-        pass
+        print(namestr(selected_enemy_for_next_level, globals()))
+        #pass
     #print(selected_enemies_for_next_level)
     
 def reset_for_next_wave():
@@ -230,7 +251,7 @@ def reset_for_next_wave():
     global wave_number
     global level_strength
     changing_types_of_enemies.clear()
-    changing_types_of_enemies = [orc, goblin, bat, assasin, vampire]
+    changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
     selected_enemies_for_next_level.clear()
     #print(unchanging_types_of_enemies)
     #print(changing_types_of_enemies)
@@ -266,6 +287,9 @@ def summon_next_wave():
                 elif enemy == vampire:
                     on_field_enemies.append(create_enemy("vampire"))
                     selected_enemies_for_next_level.remove(enemy)
+                elif enemy == necromancer:
+                    on_field_enemies.append(create_enemy("necromancer"))
+                    selected_enemies_for_next_level.remove(enemy)                    
                     
             else:
                 summon_cooldown -= 1
@@ -384,6 +408,14 @@ def update():
         if len(on_field_enemies) <= 0:
             game_state = "Shop"
 
+        for enemy in on_field_enemies:
+            if enemy.type == "necromancer":
+                if enemy.ability_delay <= 0:
+                    necromancer_skeleton_summon(enemy.x, enemy.y)
+                    enemy.ability_delay = 500
+                else:
+                    enemy.ability_delay -= 1
+
 
 # Game start
 enemy_constants = {
@@ -391,7 +423,8 @@ enemy_constants = {
     "goblin": {"distance_per_move": 6, "health": 3, "damage": 1},
     "bat": {"distance_per_move": 4,  "health": 3, "damage": 1},
     "assasin": {"distance_per_move": 3, "health": 4, "damage": 5},
-    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2}
+    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2},
+    "necromancer": {"distance_per_move": 1, "health": 15, "damage": 1}
 }
 enemy_actors = {
     "orc": Actor("orc_enemy_placeholder"),
