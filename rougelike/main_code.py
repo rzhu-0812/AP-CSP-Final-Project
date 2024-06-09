@@ -88,7 +88,7 @@ class Player:
     def __init__(self):
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
-        self.health = 3
+        self.health = 9999
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
@@ -105,58 +105,6 @@ class Player:
         if self.health <= 0:
             print("You Died")
             quit()
-
-'''
-# Enemy Class  
-class Enemy:
-    def __init__(self, enemy_type, player):
-        constants = enemy_constants[enemy_type]
-        self.enemy_type = enemy_type
-        self.sprite = constants["actor"]
-        self.distance_per_move = constants["distance_per_move"]
-        self.health = constants["health"]
-        self.damage = constants["damage"]
-        self.attack_cooldown = constants["attack_cooldown"]
-        self.last_attack_time = 0
-        self.random_spawn()
-        self.player = player
-
-    def random_spawn(self):
-        min_distance = 200
-        while True:
-            self.sprite.x = random.randint(40, WIDTH - 40)
-            self.sprite.y = random.randint(40, HEIGHT - 40)
-            if self.distance_to_player() > min_distance:
-                break
-
-    def distance_to_player(self):
-        return math.sqrt((self.sprite.x - player.sprite.x) ** 2 + (self.sprite.y - player.sprite.y) ** 2)
-    
-    def can_attack(self):
-        current_time = time.time()
-        return current_time - self.last_attack_time >= self.attack_cooldown
-
-    def attack(self):
-        if self.can_attack():
-            player.take_damage(self.damage)
-            self.last_attack_time = time.time()
-    
-    def enemy_movement(self):
-        angle = math.atan2(player.sprite.y - self.sprite.y, player.sprite.x - self.sprite.x)
-        speed_factor = 0.3
-        self.sprite.move_ip(math.cos(angle) * self.distance_per_move * speed_factor,
-                             math.sin(angle) * self.distance_per_move * speed_factor)
-
-    @classmethod 
-    # A classmethod is a method bound to a class, but not an instance of a class. It takes in cls (class) instead of self as parameter.
-    def update_enemies(cls):
-        for enemy in on_field_enemies:
-            enemy.enemy_movement()
-            if player.sprite.colliderect(enemy):
-                if enemy.can_attack():
-                    enemy.attack()
-        on_field_enemies[:] = [enemy for enemy in on_field_enemies if enemy.health > 0]
-        '''
 
 def create_enemy(enemy_type):
     if enemy_type == "orc":
@@ -216,15 +164,21 @@ def vampire_bat_summon(vampire_x, vampire_y):
         enemy.pos = (vampire_x + random.randint(-50, 50), vampire_y + random.randint(-50, 50))
         enemy.attack_cooldown = 2
         on_field_enemies.append(enemy)
+    
+def vampire_bat_summon(vampire_x, vampire_y):
+    summon_amount = random.randint(0, 3)
+    for i in range(summon_amount):
+        enemy = Actor("bat_enemy")
+        enemy.type = "bat"
+        enemy.distance_per_move = 5
+        enemy.health = 3
+        enemy.damage = 1
+        enemy.pos = (vampire_x + random.randint(-50, 50), vampire_y + random.randint(-50, 50))
+        enemy.attack_cooldown = 2
+        on_field_enemies.append(enemy)
 
 
 def vampire_special():
-    """
-    for enemy in on_field_enemies:
-        for spell in spells:
-            if spell.sprite.colliderect(enemy):
-                if enemy.type == "vampire":
-                """
     vampire_bat_summon(enemy.x, enemy.y)
     enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
 
@@ -501,6 +455,7 @@ def attack(enemy):
         player.take_damage(enemy.damage)
         last_attack_time = time.time()
 
+
 # Main game loop
 def draw():
     global game_state
@@ -550,30 +505,16 @@ def update():
     for spell in spells:
         spell.move()
     if game_state == "Fight":
+        enemy_behavior()
         if len(on_field_enemies) <= 0:
             game_state = "Shop"
+    elif game_state == "Shop":
+        spells.clear()
 
 player = Player()
 
-enemy_constants = {
-    "orc": {"distance_per_move": 2, "health": 7, "damage": 1},
-    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1},
-    "bat": {"distance_per_move": 4,  "health": 3, "damage": 1},
-    "assasin": {"distance_per_move": 3, "health": 4, "damage": 5},
-    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2}
-}
-enemy_actors = {
-    "orc": Actor("orc_enemy_placeholder"),
-    "goblin": Actor("goblin_enemy_placeholder"),
-    "bat": Actor("bat_enemy_placeholder"),
-    "assasin": Actor("assasin_enemy_placeholder"),
-    "vampire": Actor("vampire_enemy_placeholder")
-}
-
-enemies = ["orc", "orc", "orc", "orc", "orc"]
-
 spells = []
-equipped_spell = "penetrating_shot"
+equipped_spell = "bounce_shot"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
