@@ -10,6 +10,8 @@ HEIGHT = 600
 CENTER_X = WIDTH / 2
 CENTER_Y = HEIGHT / 2
 
+game_state = "Shop"
+
 
 # Actors
 player = Actor("player_placeholder")
@@ -61,7 +63,7 @@ def create_enemy(enemy_type):
         enemy = Actor("orc_enemy_placeholder")
         enemy.type = "orc"
         enemy.distance_per_move = 2
-        enemy.health = 5
+        enemy.health = 7
         enemy.damage = 1
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
@@ -76,7 +78,7 @@ def create_enemy(enemy_type):
     if enemy_type == "bat":
         enemy = Actor("bat_enemy_placeholder")
         enemy.type = "bat"
-        enemy.distance_per_move = 5
+        enemy.distance_per_move = 4
         enemy.health = 3
         enemy.damage = 1
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
@@ -124,7 +126,7 @@ def vampire_special():
 
 class Spell:
     spell_cooldowns = {
-        "spell_placeholder": 0.1
+        "spell_placeholder": 0.5
     }
 
     def __init__(self, sprite, speed, spell_range, delete, spell_type, spell_damage):
@@ -149,9 +151,9 @@ def namestr(obj, namespace):
 #enemy = Enemy("Placeholder", Actor("enemy_placeholder", **enemy_constants["Placeholder"]))
 #on_field_enemies.append(enemy)
 
-orc = 1
+orc = 2
 goblin = 3
-bat = 2
+bat = 1
 assasin = 5
 vampire = 10
 speed_factor = 0.3
@@ -240,8 +242,9 @@ def reset_for_next_wave():
 
 summon_cooldown = 500
 def summon_next_wave():
-    counter = 0
+    global game_state
     global summon_cooldown
+    game_state = "Fight"
     while len(selected_enemies_for_next_level) > 0:
         for enemy in selected_enemies_for_next_level:
             #pass
@@ -338,16 +341,19 @@ def spell_behavior():
 
 # Main game loop
 def draw():
+    global game_state
     counter = 0
     screen.clear()
-    for tile in tiles:
-        tile.draw()
-    player.draw()
-    for enemy in on_field_enemies:
-        enemy.draw()
-        #print(counter)
-    for spell in spells:
-        spell.sprite.draw()
+
+    if game_state == "Fight":
+        for tile in tiles:
+            tile.draw()
+        player.draw()
+        for enemy in on_field_enemies:
+            enemy.draw()
+            #print(counter)
+        for spell in spells:
+            spell.sprite.draw()
 
 def on_mouse_down(pos):
     global last_spell_cast_time
@@ -359,25 +365,31 @@ def on_mouse_down(pos):
         last_spell_cast_time = current_time
 
 def on_key_up(key):
-    if key == keys.SPACE:
-        select_enemies_for_next_level()
-        summon_next_wave()
-        reset_for_next_wave()
+    global game_state
+    if game_state == "Shop":
+        if key == keys.SPACE:
+            select_enemies_for_next_level()
+            summon_next_wave()
+            reset_for_next_wave()
         #print(len(on_field_enemies))
 
 def update():
+    global game_state
     events = pygame.event.get()
     player_movement()
     enemy_movement()
     #vampire_special()
     spell_behavior()
+    if game_state == "Fight":
+        if len(on_field_enemies) <= 0:
+            game_state = "Shop"
 
 
 # Game start
 enemy_constants = {
-    "orc": {"distance_per_move": 2, "health": 5, "damage": 1},
+    "orc": {"distance_per_move": 2, "health": 7, "damage": 1},
     "goblin": {"distance_per_move": 6, "health": 3, "damage": 1},
-    "bat": {"distance_per_move": 5,  "health": 3, "damage": 1},
+    "bat": {"distance_per_move": 4,  "health": 3, "damage": 1},
     "assasin": {"distance_per_move": 3, "health": 4, "damage": 2},
     "vampire": {"distance_per_move": 1, "health": 10, "damage": 2}
 }
