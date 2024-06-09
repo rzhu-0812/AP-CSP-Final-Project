@@ -34,7 +34,6 @@ spell_constants = {
     "bounce_shot": {
         "speed": 3,
         "range": 7500,
-        "range": 5000,
         "cooldown": 1,
         "damage": 0.5
     },
@@ -223,6 +222,9 @@ class DirectShot(Spell):
         super().move()
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy):
+                if enemy.type == "vampire":
+                    vampire_bat_summon(enemy.x, enemy.y)
+                    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
@@ -237,6 +239,9 @@ class PenetratingShot(Spell):
         super().move()
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
+                if enemy.type == "vampire":
+                    vampire_bat_summon(enemy.x, enemy.y)
+                    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 self.enemies_hit.add(enemy)
                 if enemy.health <= 0:
@@ -247,7 +252,7 @@ class BounceShot(Spell):
         super().__init__(sprite, "bounce_shot")
         self.direction_x = 1
         self.direction_y = 0
-        self.bounce_limit = 3
+        self.bounce_limit = 5
         self.bounces = 0
         self.previous_enemy = None
     
@@ -267,6 +272,9 @@ class BounceShot(Spell):
                 break
         
         if hit_enemy:
+            if enemy.type == "vampire":
+                    vampire_bat_summon(enemy.x, enemy.y)
+                    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
             hit_enemy.health -= self.damage
             if hit_enemy.health <= 0:
                 on_field_enemies.remove(hit_enemy)
@@ -316,13 +324,15 @@ class ChainShot(Spell):
 
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
+                if enemy.type == "vampire":
+                    vampire_bat_summon(enemy.x, enemy.y)
+                    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 self.enemies_hit.add(enemy)
                 self.chains += 1
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
                 self.target_next_enemy(enemy)
-                break
     
     def target_next_enemy(self, current_enemy):
         closest_enemy = None
