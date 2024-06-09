@@ -33,7 +33,11 @@ spell_constants = {
     },
     "bounce_shot": {
         "speed": 3,
+<<<<<<< HEAD
         "range": 7500,
+=======
+        "range": 5000,
+>>>>>>> 6e00d2f345ae07afe1adc43b6defe4db00eb343a
         "cooldown": 1,
         "damage": 0.5
     },
@@ -361,9 +365,8 @@ selected_enemies_for_next_level = []
 
 
 def select_enemies_for_next_level():
+    global level_strength, changing_types_of_enemies
 
-    global level_strength
-    global changing_types_of_enemies
     done = False
     while not done:
         for enemy in changing_types_of_enemies:
@@ -391,10 +394,8 @@ def select_enemies_for_next_level():
             level_strength += changing_types_of_enemies[x]
     
 def reset_for_next_wave():
-    global changing_types_of_enemies
-    global unchanging_types_of_enemies
-    global wave_number
-    global level_strength
+    global changing_types_of_enemies, unchanging_types_of_enemies, wave_number, level_strength
+
     changing_types_of_enemies.clear()
     changing_types_of_enemies = [orc, goblin, bat, assasin, vampire]
     selected_enemies_for_next_level.clear()
@@ -404,8 +405,8 @@ def reset_for_next_wave():
 
 summon_cooldown = 500
 def summon_next_wave():
-    global game_state
-    global summon_cooldown
+    global game_state, summon_cooldown
+
     game_state = "Fight"
     while len(selected_enemies_for_next_level) > 0:
         for enemy in selected_enemies_for_next_level:
@@ -492,7 +493,7 @@ def on_mouse_down(pos):
 def on_key_up(key):
     global game_state
     if game_state == "Shop":
-        if key == keys.SPACE:
+        if key == keys.SPACE: # type: ignore
             select_enemies_for_next_level()
             summon_next_wave()
             reset_for_next_wave()
