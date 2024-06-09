@@ -113,8 +113,8 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 2
         enemy.health = 7
         enemy.damage = 1
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
+        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "goblin":
         enemy = Actor("goblin_enemy")
@@ -122,8 +122,8 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 6
         enemy.health = 3
         enemy.damage = 1
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
+        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "bat":
         enemy = Actor("bat_enemy")
@@ -131,8 +131,8 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 4
         enemy.health = 3
         enemy.damage = 1
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
+        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "assasin":
         enemy = Actor("assasin_enemy")
@@ -140,8 +140,8 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 3
         enemy.health = 4
         enemy.damage = 5
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
+        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "vampire":
         enemy = Actor("vampire_enemy")
@@ -149,23 +149,25 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 1
         enemy.health = 10
         enemy.damage = 2
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
-        return(enemy)
-    if enemy_type == "necromancer":
-        enemy = Actor("necromancer_enemy_placeholder")
-        enemy.type = "necromancer"
-        enemy.distance_per_move = 1
-        enemy.health = 15
-        enemy.damage = 0
-        enemy.ability_delay = 500
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
-        enemy.attack_cooldown = 2
         return(enemy)
     
 def vampire_bat_summon(vampire_x, vampire_y):
     summon_amount = random.randint(0, 3)
-    for _ in range(summon_amount):
+    for i in range(summon_amount):
+        enemy = Actor("bat_enemy")
+        enemy.type = "bat"
+        enemy.distance_per_move = 5
+        enemy.health = 3
+        enemy.damage = 1
+        enemy.attack_cooldown = 2
+        enemy.pos = (vampire_x + random.randint(-50, 50), vampire_y + random.randint(-50, 50))
+        on_field_enemies.append(enemy)
+    
+def vampire_bat_summon(vampire_x, vampire_y):
+    summon_amount = random.randint(0, 3)
+    for i in range(summon_amount):
         enemy = Actor("bat_enemy")
         enemy.type = "bat"
         enemy.distance_per_move = 5
@@ -175,16 +177,10 @@ def vampire_bat_summon(vampire_x, vampire_y):
         enemy.attack_cooldown = 2
         on_field_enemies.append(enemy)
 
-def necromancer_skeleton_summon(necromancer_x, necromancer_y):
-    summon_amount = random.randint(2, 6)
-    for _ in range(summon_amount):
-        enemy = Actor("skeleton_enemy_placeholder")
-        enemy.type = "skeleton"
-        enemy.distance_per_move = 3
-        enemy.health = 1
-        enemy.damage = 1
-        enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
-        on_field_enemies.append(enemy)
+
+def vampire_special():
+    vampire_bat_summon(enemy.x, enemy.y)
+    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
 
 # Spell Classes
 class Spell:
@@ -222,9 +218,6 @@ class DirectShot(Spell):
         super().move()
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy):
-                if enemy.type == "vampire":
-                    vampire_bat_summon(enemy.x, enemy.y)
-                    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
@@ -239,9 +232,6 @@ class PenetratingShot(Spell):
         super().move()
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
-                if enemy.type == "vampire":
-                    vampire_bat_summon(enemy.x, enemy.y)
-                    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 self.enemies_hit.add(enemy)
                 if enemy.health <= 0:
@@ -252,7 +242,7 @@ class BounceShot(Spell):
         super().__init__(sprite, "bounce_shot")
         self.direction_x = 1
         self.direction_y = 0
-        self.bounce_limit = 5
+        self.bounce_limit = 3
         self.bounces = 0
         self.previous_enemy = None
     
@@ -272,9 +262,6 @@ class BounceShot(Spell):
                 break
         
         if hit_enemy:
-            if enemy.type == "vampire":
-                    vampire_bat_summon(enemy.x, enemy.y)
-                    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
             hit_enemy.health -= self.damage
             if hit_enemy.health <= 0:
                 on_field_enemies.remove(hit_enemy)
@@ -324,15 +311,13 @@ class ChainShot(Spell):
 
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
-                if enemy.type == "vampire":
-                    vampire_bat_summon(enemy.x, enemy.y)
-                    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 self.enemies_hit.add(enemy)
                 self.chains += 1
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
                 self.target_next_enemy(enemy)
+                break
     
     def target_next_enemy(self, current_enemy):
         closest_enemy = None
@@ -363,11 +348,10 @@ goblin = 3
 bat = 1
 assasin = 5
 vampire = 15
-necromancer = 30
 speed_factor = 0.3
 
-unchanging_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
-changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
+unchanging_types_of_enemies = [orc, goblin, bat, assasin, vampire]
+changing_types_of_enemies = [orc, goblin, bat, assasin, vampire]
 
 
 level_strength = -1
@@ -377,8 +361,9 @@ selected_enemies_for_next_level = []
 
 
 def select_enemies_for_next_level():
-    global level_strength, changing_types_of_enemies
 
+    global level_strength
+    global changing_types_of_enemies
     done = False
     while not done:
         for enemy in changing_types_of_enemies:
@@ -406,10 +391,12 @@ def select_enemies_for_next_level():
             level_strength += changing_types_of_enemies[x]
     
 def reset_for_next_wave():
-    global changing_types_of_enemies, unchanging_types_of_enemies, wave_number, level_strength
-
+    global changing_types_of_enemies
+    global unchanging_types_of_enemies
+    global wave_number
+    global level_strength
     changing_types_of_enemies.clear()
-    changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
+    changing_types_of_enemies = [orc, goblin, bat, assasin, vampire]
     selected_enemies_for_next_level.clear()
     wave_number -= 1
     level_strength = wave_number
@@ -417,8 +404,8 @@ def reset_for_next_wave():
 
 summon_cooldown = 500
 def summon_next_wave():
-    global game_state, summon_cooldown
-
+    global game_state
+    global summon_cooldown
     game_state = "Fight"
     while len(selected_enemies_for_next_level) > 0:
         for enemy in selected_enemies_for_next_level:
@@ -439,9 +426,6 @@ def summon_next_wave():
                 elif enemy == vampire:
                     on_field_enemies.append(create_enemy("vampire"))
                     selected_enemies_for_next_level.remove(enemy)
-                elif enemy == necromancer:
-                    on_field_enemies.append(create_enemy("necromancer"))
-                    selected_enemies_for_next_level.remove(enemy)      
                     
             else:
                 summon_cooldown -= 1
@@ -508,7 +492,7 @@ def on_mouse_down(pos):
 def on_key_up(key):
     global game_state
     if game_state == "Shop":
-        if key == keys.SPACE: # type: ignore
+        if key == keys.SPACE:
             select_enemies_for_next_level()
             summon_next_wave()
             reset_for_next_wave()
@@ -524,22 +508,13 @@ def update():
         enemy_behavior()
         if len(on_field_enemies) <= 0:
             game_state = "Shop"
-        
-        for enemy in on_field_enemies:
-            if enemy.type == "necromancer":
-                if enemy.ability_delay <= 0:
-                    necromancer_skeleton_summon(enemy.x, enemy.y)
-                    enemy.ability_delay = 500
-                else:
-                    enemy.ability_delay -= 1
-                    
     elif game_state == "Shop":
         spells.clear()
 
 player = Player()
 
 spells = []
-equipped_spell = "bounce_shot"
+equipped_spell = "chain_shot"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
