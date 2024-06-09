@@ -88,7 +88,7 @@ class Player:
     def __init__(self):
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
-        self.health = 6
+        self.health = 9999
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
