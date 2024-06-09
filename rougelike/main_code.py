@@ -121,7 +121,7 @@ def create_enemy(enemy_type):
         enemy.damage = 1
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
-        enemy.last_freeze_tiem = 0
+        enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
@@ -133,7 +133,7 @@ def create_enemy(enemy_type):
         enemy.damage = 1
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
-        enemy.last_freeze_tiem = 0
+        enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
@@ -145,7 +145,7 @@ def create_enemy(enemy_type):
         enemy.damage = 1
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
-        enemy.last_freeze_tiem = 0
+        enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
@@ -157,7 +157,7 @@ def create_enemy(enemy_type):
         enemy.damage = 5
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
-        enemy.last_freeze_tiem = 0
+        enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
@@ -169,7 +169,7 @@ def create_enemy(enemy_type):
         enemy.damage = 2
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
-        enemy.last_freeze_tiem = 0
+        enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
