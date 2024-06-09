@@ -508,11 +508,13 @@ def update():
         enemy_behavior()
         if len(on_field_enemies) <= 0:
             game_state = "Shop"
+    elif game_state == "Shop":
+        spells.clear()
 
 player = Player()
 
 spells = []
-equipped_spell = "penetrating_shot"
+equipped_spell = "bounce_shot"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
