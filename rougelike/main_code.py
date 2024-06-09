@@ -33,11 +33,8 @@ spell_constants = {
     },
     "bounce_shot": {
         "speed": 3,
-<<<<<<< HEAD
         "range": 7500,
-=======
         "range": 5000,
->>>>>>> 6e00d2f345ae07afe1adc43b6defe4db00eb343a
         "cooldown": 1,
         "damage": 0.5
     },
