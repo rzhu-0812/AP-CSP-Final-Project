@@ -511,31 +511,6 @@ def update():
 
 player = Player()
 
-enemy_constants = {
-    "orc": {"distance_per_move": 2, "health": 7, "damage": 1, "attack_cooldown": 2},
-    "goblin": {"distance_per_move": 6, "health": 3, "damage": 1, "attack_cooldown": 2},
-    "bat": {"distance_per_move": 4,  "health": 3, "damage": 1, "attack_cooldown": 2},
-    "assasin": {"distance_per_move": 3, "health": 4, "damage": 5, "attack_cooldown": 2},
-    "vampire": {"distance_per_move": 1, "health": 10, "damage": 2, "attack_cooldown": 2}
-}
-enemy_actors = {
-    "orc": Actor("orc_enemy_placeholder"),
-    "goblin": Actor("goblin_enemy_placeholder"),
-    "bat": Actor("bat_enemy_placeholder"),
-    "assasin": Actor("assasin_enemy_placeholder"),
-    "vampire": Actor("vampire_enemy_placeholder")
-}
-
-enemy_attack_cooldown = {
-    "orc": 2,
-    "goblin": 2,
-    "bat": 2,
-    "assasin": 2,
-    "vampire": 2
-}
-
-enemies = ["orc", "orc", "orc", "orc", "orc"]
-
 spells = []
 equipped_spell = "penetrating_shot"
 
