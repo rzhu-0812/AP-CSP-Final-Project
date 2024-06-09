@@ -45,50 +45,12 @@ spell_constants = {
     }
 }
 
-enemy_constants = {
-    "orc": {
-        "actor": Actor("orc_enemy_placeholder"),  
-        "distance_per_move": 2, 
-        "health": 5, 
-        "damage": 1, 
-        "attack_cooldown": 5
-    },
-    "goblin": {
-        "actor": Actor("goblin_enemy_placeholder"),
-        "distance_per_move": 6, 
-        "health": 3, 
-        "damage": 1, 
-        "attack_cooldown": 5
-    },
-    "bat": {
-        "actor": Actor("bat_enemy_placeholder"),
-        "distance_per_move": 5,  
-        "health": 3, 
-        "damage": 1, 
-        "attack_cooldown": 5
-    },
-    "assasin": {
-        "actor": Actor("assasin_enemy_placeholder"),
-        "distance_per_move": 3, 
-        "health": 4, 
-        "damage": 2, 
-        "attack_cooldown": 10
-    },
-    "vampire": {
-        "actor": Actor("vampire_enemy_placeholder"),
-        "distance_per_move": 1, 
-        "health": 10, 
-        "damage": 2, 
-        "attack_cooldown": 10
-    }
-}
-
 # Player Class
 class Player:
     def __init__(self):
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
-        self.health = 9999
+        self.health = 6
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
