@@ -42,6 +42,12 @@ spell_constants = {
         "range": 2000,
         "cooldown": 1.5,
         "damage": 0.5
+    },
+    "freeze_shot": {
+        "speed": 3,
+        "range": 500,
+        "cooldown": 1,
+        "damage": 1
     }
 }
 
@@ -380,6 +386,41 @@ class ChainShot(Spell):
             self.direction_x = math.cos(self.angle) * self.speed
             self.direction_y = math.sin(self.angle) * self.speed
 
+class FreezeShot(Spell):
+    def __init__(self, sprite):
+        super().__init__(sprite, "freeze_shot")
+        self.freeze_duration = 3
+        self.last_freeze_time = 0
+        self.freeze_cooldown = 5
+        self.frozen_enemies = set()
+
+    def move(self):
+        self.sprite.x += self.direction_x * self.speed
+        self.sprite.y += self.direction_y * self.speed
+        self.range -= self.speed
+
+        if self.range <= 0 or self.chains >= self.chain_limit:
+            spells.remove(self)
+            return
+        
+        for enemy in on_field_enemies:
+            if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
+                pass
+    def can_freeze(self):
+        current_time = time.time()
+        return current_time - self.last_freeze_time >= self.attack_cooldown
+
+    def freeze(self, enemy):
+        if self.can_freeze():
+            enemy.distance_per_move /= 2
+            self.last_attack_time = time.time()
+
+    def remove_slowdown(self, enemy):
+        if enemy in self.frozen_enemies:
+            enemy.distance_per_move *= 2
+            self.frozen_enemies.remove(enemy)
+                
+
 # Game state
 last_spell_cast_time = 0
 last_attack_time = 0
@@ -530,6 +571,8 @@ def on_mouse_down(pos):
             spell = BounceShot(Actor("bounce_shot", pos=(player.sprite.x, player.sprite.y)))
         elif equipped_spell == "chain_shot":
             spell = ChainShot(Actor("chain_shot", pos=(player.sprite.x, player.sprite.y)))
+        elif equipped_spell == "freeze_shot":
+            spell = FreezeShot(Actor("freeze_shot", pos=(player.sprite.x, player.sprite.y)))
         spell.initialize_spell((player.sprite.x, player.sprite.y), pos)
         spells.append(spell)
         last_spell_cast_time = current_time
@@ -573,7 +616,7 @@ enemy_actors = {
 enemies = ["orc", "orc", "orc", "orc", "orc"]
 
 spells = []
-equipped_spell = "penetrating_shot"
+equipped_spell = "freeze_shot"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
