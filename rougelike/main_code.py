@@ -187,7 +187,7 @@ class Spell:
     def __init__(self, sprite, spell_type):
         constants = spell_constants[spell_type]
         self.spell_type = spell_type
-        self.sprite = sprites
+        self.sprite = sprite
         self.speed = constants["speed"]
         self.range = constants["range"]
         self.cooldown = constants["cooldown"]
