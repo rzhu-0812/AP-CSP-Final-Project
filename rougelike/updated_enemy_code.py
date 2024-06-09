@@ -60,7 +60,7 @@ class Vampire(Enemy):
 """
 def create_enemy(enemy_type):
     if enemy_type == "orc":
-        enemy = Actor("orc_enemy_placeholder")
+        enemy = Actor("orc_enemy")
         enemy.type = "orc"
         enemy.distance_per_move = 2
         enemy.health = 7
@@ -68,7 +68,7 @@ def create_enemy(enemy_type):
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "goblin":
-        enemy = Actor("goblin_enemy_placeholder")
+        enemy = Actor("goblin_enemy")
         enemy.type = "goblin"
         enemy.distance_per_move = 6
         enemy.health = 3
@@ -76,7 +76,7 @@ def create_enemy(enemy_type):
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "bat":
-        enemy = Actor("bat_enemy_placeholder")
+        enemy = Actor("bat_enemy")
         enemy.type = "bat"
         enemy.distance_per_move = 4
         enemy.health = 3
@@ -84,15 +84,15 @@ def create_enemy(enemy_type):
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "assasin":
-        enemy = Actor("assasin_enemy_placeholder")
+        enemy = Actor("assasin_enemy")
         enemy.type = "assasin"
         enemy.distance_per_move = 3
         enemy.health = 4
-        enemy.damage = 2
+        enemy.damage = 5
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
     if enemy_type == "vampire":
-        enemy = Actor("vampire_enemy_placeholder")
+        enemy = Actor("vampire_enemy")
         enemy.type = "vampire"
         enemy.distance_per_move = 1
         enemy.health = 10
@@ -103,7 +103,7 @@ def create_enemy(enemy_type):
 def vampire_bat_summon(vampire_x, vampire_y):
     summon_amount = random.randint(0, 3)
     for i in range(summon_amount):
-        enemy = Actor("bat_enemy_placeholder")
+        enemy = Actor("bat_enemy")
         enemy.type = "bat"
         enemy.distance_per_move = 5
         enemy.health = 3
@@ -155,7 +155,7 @@ orc = 2
 goblin = 3
 bat = 1
 assasin = 5
-vampire = 10
+vampire = 15
 speed_factor = 0.3
 
 unchanging_types_of_enemies = [orc, goblin, bat, assasin, vampire]
@@ -390,7 +390,7 @@ enemy_constants = {
     "orc": {"distance_per_move": 2, "health": 7, "damage": 1},
     "goblin": {"distance_per_move": 6, "health": 3, "damage": 1},
     "bat": {"distance_per_move": 4,  "health": 3, "damage": 1},
-    "assasin": {"distance_per_move": 3, "health": 4, "damage": 2},
+    "assasin": {"distance_per_move": 3, "health": 4, "damage": 5},
     "vampire": {"distance_per_move": 1, "health": 10, "damage": 2}
 }
 enemy_actors = {
