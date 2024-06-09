@@ -46,7 +46,7 @@ spell_constants = {
     "freeze_shot": {
         "speed": 3,
         "range": 500,
-        "cooldown": 1,
+        "cooldown": 0.1,
         "damage": 1
     }
 }
@@ -171,6 +171,9 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 2
         enemy.health = 7
         enemy.damage = 1
+        enemy.is_frozen = False
+        enemy.last_freeze_tiem = 0
+        enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
         return(enemy)
@@ -180,6 +183,9 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 6
         enemy.health = 3
         enemy.damage = 1
+        enemy.is_frozen = False
+        enemy.last_freeze_tiem = 0
+        enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
         return(enemy)
@@ -189,6 +195,9 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 4
         enemy.health = 3
         enemy.damage = 1
+        enemy.is_frozen = False
+        enemy.last_freeze_tiem = 0
+        enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
         return(enemy)
@@ -198,6 +207,9 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 3
         enemy.health = 4
         enemy.damage = 5
+        enemy.is_frozen = False
+        enemy.last_freeze_tiem = 0
+        enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
         return(enemy)
@@ -207,6 +219,9 @@ def create_enemy(enemy_type):
         enemy.distance_per_move = 1
         enemy.health = 10
         enemy.damage = 2
+        enemy.is_frozen = False
+        enemy.last_freeze_tiem = 0
+        enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         enemy.attack_cooldown = 2
         return(enemy)
@@ -389,37 +404,31 @@ class ChainShot(Spell):
 class FreezeShot(Spell):
     def __init__(self, sprite):
         super().__init__(sprite, "freeze_shot")
-        self.freeze_duration = 3
-        self.last_freeze_time = 0
-        self.freeze_cooldown = 5
-        self.frozen_enemies = set()
 
     def move(self):
         self.sprite.x += self.direction_x * self.speed
         self.sprite.y += self.direction_y * self.speed
         self.range -= self.speed
 
-        if self.range <= 0 or self.chains >= self.chain_limit:
+        if self.range <= 0:
             spells.remove(self)
             return
         
         for enemy in on_field_enemies:
-            if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
-                pass
-    def can_freeze(self):
-        current_time = time.time()
-        return current_time - self.last_freeze_time >= self.attack_cooldown
+            if self.sprite.colliderect(enemy):
+                if not enemy.is_frozen:
+                    self.freeze(enemy)
+                enemy.health -= self.damage
+                if enemy.health <= 0:
+                    on_field_enemies.remove(enemy)
+                if self in spells:
+                    spells.remove(self)
 
     def freeze(self, enemy):
-        if self.can_freeze():
-            enemy.distance_per_move /= 2
-            self.last_attack_time = time.time()
-
-    def remove_slowdown(self, enemy):
-        if enemy in self.frozen_enemies:
-            enemy.distance_per_move *= 2
-            self.frozen_enemies.remove(enemy)
-                
+        if not enemy.is_frozen:
+            enemy.distance_per_move /= 3
+            enemy.is_frozen = True
+            enemy.last_freeze_time = time.time()
 
 # Game state
 last_spell_cast_time = 0
@@ -595,6 +604,13 @@ def update():
     if game_state == "Fight":
         if len(on_field_enemies) <= 0:
             game_state = "Shop"
+    
+    current_time = time.time()
+    for enemy in on_field_enemies:
+        if enemy.is_frozen and current_time - enemy.last_freeze_time >= enemy.freeze_duration:
+            enemy.distance_per_move *= 3
+            enemy.is_frozen = False
+            enemy.last_freeze_time = current_time
 
 player = Player()
 
