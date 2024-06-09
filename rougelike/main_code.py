@@ -34,7 +34,7 @@ spell_constants = {
     "bounce_shot": {
         "speed": 3,
         "range": 5000,
-        "cooldown": 1.5,
+        "cooldown": 0.1,
         "damage": 0.5
     },
     "chain_shot": {
@@ -50,15 +50,15 @@ class Player:
     def __init__(self):
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
-        self.health = 6
+        self.health = 10
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
-            self.sprite.y = max(self.sprite.y - 2, 0 + 38)
+            self.sprite.y = max(self.sprite.y - 2, 38)
         elif keyboard.S or keyboard.down: # type: ignore
             self.sprite.y = min(self.sprite.y + 2, HEIGHT - 38)
         if keyboard.A or keyboard.left: # type: ignore
-            self.sprite.x = max(self.sprite.x - 2, 0 + 38)
+            self.sprite.x = max(self.sprite.x - 2, 38)
         elif keyboard.D or keyboard.right: # type: ignore
             self.sprite.x = min(self.sprite.x + 2, WIDTH - 38)
     
@@ -139,11 +139,6 @@ def vampire_bat_summon(vampire_x, vampire_y):
         enemy.attack_cooldown = 2
         on_field_enemies.append(enemy)
 
-
-def vampire_special():
-    vampire_bat_summon(enemy.x, enemy.y)
-    enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
-
 # Spell Classes
 class Spell:
     def __init__(self, sprite, spell_type):
@@ -180,6 +175,9 @@ class DirectShot(Spell):
         super().move()
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy):
+                if enemy.type == "vampire":
+                        vampire_bat_summon(enemy.x, enemy.y)
+                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
@@ -194,6 +192,9 @@ class PenetratingShot(Spell):
         super().move()
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
+                if enemy.type == "vampire":
+                        vampire_bat_summon(enemy.x, enemy.y)
+                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 self.enemies_hit.add(enemy)
                 if enemy.health <= 0:
@@ -224,6 +225,9 @@ class BounceShot(Spell):
                 break
         
         if hit_enemy:
+            if enemy.type == "vampire":
+                        vampire_bat_summon(enemy.x, enemy.y)
+                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
             hit_enemy.health -= self.damage
             if hit_enemy.health <= 0:
                 on_field_enemies.remove(hit_enemy)
@@ -273,6 +277,9 @@ class ChainShot(Spell):
 
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
+                if enemy.type == "vampire":
+                        vampire_bat_summon(enemy.x, enemy.y)
+                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
                 enemy.health -= self.damage
                 self.enemies_hit.add(enemy)
                 self.chains += 1
