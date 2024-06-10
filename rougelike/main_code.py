@@ -204,15 +204,10 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         enemy.distance_per_move = 3
         enemy.health = 1
         enemy.damage = 1
-<<<<<<< HEAD
         enemy.attack_cooldown = 2
         enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
         on_field_enemies.append(enemy)
-=======
-        enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
-        on_field_enemies.append(enemy)
-    
->>>>>>> b700655185c255db5985783b692749c6ad3410f0
+
 
 # Spell Classes
 class Spell:
@@ -424,24 +419,15 @@ goblin = 3
 bat = 1
 assasin = 5
 vampire = 15
-<<<<<<< HEAD
 necromancer = 10
-=======
-necromancer = 30
->>>>>>> b700655185c255db5985783b692749c6ad3410f0
 speed_factor = 0.3
 
 unchanging_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 
 
-<<<<<<< HEAD
-level_strength = -10
-wave_number = -10
-=======
-level_strength = 100
+level_strength = -1
 wave_number = -1
->>>>>>> b700655185c255db5985783b692749c6ad3410f0
 
 selected_enemies_for_next_level = []
 
@@ -514,11 +500,7 @@ def summon_next_wave():
                     selected_enemies_for_next_level.remove(enemy)
                 elif enemy == necromancer:
                     on_field_enemies.append(create_enemy("necromancer"))
-<<<<<<< HEAD
                     selected_enemies_for_next_level.remove(enemy)
-=======
-                    selected_enemies_for_next_level.remove(enemy)   
->>>>>>> b700655185c255db5985783b692749c6ad3410f0
                     
             else:
                 summon_cooldown -= 1
@@ -631,11 +613,7 @@ def update():
 player = Player()
 
 spells = []
-<<<<<<< HEAD
 equipped_spell = "penetrating_shot"
-=======
-equipped_spell = "freeze_shot"
->>>>>>> b700655185c255db5985783b692749c6ad3410f0
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
