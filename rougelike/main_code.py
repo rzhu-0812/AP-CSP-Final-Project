@@ -4,6 +4,7 @@ import random
 import time
 
 from pgzhelper import Actor
+from pgzhelper import *
 
 # Constants
 WIDTH = 1200
@@ -434,11 +435,41 @@ def namestr(obj, namespace):
     return [name for name in namespace if namespace[name] is obj]
 
 orc = 2
+num_orcs = 0
+num_orcs_sprite = Actor("orc_enemy")
+num_orcs_sprite.scale = 0.75
+num_orcs_sprite.pos = (125, 190)
+num_orcs_box = Rect(220, 165, 100, 50)
 goblin = 3
+num_goblins = 0
+num_goblins_sprite = Actor("goblin_enemy")
+num_goblins_sprite.scale = 0.75
+num_goblins_sprite.pos = (116, 250)
+num_goblins_box = Rect(220, 228, 100, 50)
 bat = 1
+num_bats = 0
+num_bats_sprite = Actor("bat_enemy")
+num_bats_sprite.scale = 0.75
+num_bats_sprite.pos = (116, 310)
+num_bats_box = Rect(220, 291, 100, 50)
 assasin = 5
+num_assasins = 0
+num_assasins_sprite = Actor("assasin_enemy")
+num_assasins_sprite.scale = 0.75
+num_assasins_sprite.pos = (116, 370)
+num_assasins_box = Rect(220, 348, 100, 50)
 vampire = 15
+num_vampires = 0
+num_vampires_sprite = Actor("vampire_enemy")
+num_vampires_sprite.scale = 0.75
+num_vampires_sprite.pos = (116, 430)
+num_vampires_box = Rect(220, 405, 100, 50)
 necromancer = 10
+num_necromancers = 0
+num_necromancers_sprite = Actor("necromancer_enemy_placeholder")
+num_necromancers_sprite.scale = 0.75
+num_necromancers_sprite.pos = (116, 490)
+num_necromancers_box = Rect(220, 461, 100, 50)
 speed_factor = 0.3
 
 monster_gate = Actor("monster_gate")
@@ -460,6 +491,7 @@ def select_enemies_for_next_level():
 
     global level_strength
     global changing_types_of_enemies
+    global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_necromancers
     done = False
     while not done:
         for enemy in changing_types_of_enemies:
@@ -486,6 +518,20 @@ def select_enemies_for_next_level():
             selected_enemies_for_next_level.append(changing_types_of_enemies[x])
             level_strength += changing_types_of_enemies[x]
 
+    for enemy in selected_enemies_for_next_level:
+        if enemy == orc:
+            num_orcs += 1
+        elif enemy == goblin:
+            num_goblins += 1
+        elif enemy == bat:
+            num_bats += 1
+        elif enemy == assasin:
+            num_assasins += 1
+        elif enemy == vampire:
+            num_vampires += 1
+        elif enemy == necromancer:
+            num_necromancers += 1
+
     #print(len(selected_enemies_for_next_level))
     
 def reset_for_next_wave():
@@ -493,6 +539,7 @@ def reset_for_next_wave():
     global unchanging_types_of_enemies
     global wave_number
     global level_strength
+    global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_necromancers
     monster_gate.x = random.randint(-400, 400) + CENTER_X
     monster_gate.y = random.randint(-200, 200) + CENTER_Y
     changing_types_of_enemies.clear()
@@ -500,6 +547,12 @@ def reset_for_next_wave():
     selected_enemies_for_next_level.clear()
     wave_number -= 1
     level_strength = wave_number
+    num_orcs = 0
+    num_goblins = 0
+    num_bats = 0
+    num_assasins = 0
+    num_vampires = 0
+    num_necromancers = 0
 
 summoning_next_wave = False
 summon_cooldown = 500
@@ -568,6 +621,7 @@ def attack(enemy):
 # Main game loop
 def draw():
     global game_state
+    global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_assasins
     screen.clear() # type: ignore
 
     if game_state == "Fight":
@@ -584,6 +638,24 @@ def draw():
     if game_state == "Shop":
         screen.fill("dark green")
         enemies_in_next_round.draw()
+        num_orcs_sprite.draw()
+        #screen.draw.rect(num_orcs_box, color = "black")
+        screen.draw.textbox(str(num_orcs), num_orcs_box, color = ("black") )
+        num_goblins_sprite.draw()
+        #screen.draw.rect(num_goblins_box, color = "black")
+        screen.draw.textbox(str(num_goblins), num_goblins_box, color = ("black") )
+        num_bats_sprite.draw()
+        #screen.draw.rect(num_bats_box, color = "black")
+        screen.draw.textbox(str(num_bats), num_bats_box, color = ("black") )
+        num_assasins_sprite.draw()
+        #screen.draw.rect(num_assasins_box, color = "black")
+        screen.draw.textbox(str(num_assasins), num_assasins_box, color = ("black") )
+        num_vampires_sprite.draw()
+        #screen.draw.rect(num_vampires_box, color = "black")
+        screen.draw.textbox(str(num_vampires), num_vampires_box, color = ("black") )
+        num_necromancers_sprite.draw()
+        #screen.draw.rect(num_necromancers_box, color = "black")
+        screen.draw.textbox(str(num_necromancers), num_necromancers_box, color = ("black") )
 
 def on_mouse_down(pos):
     global last_spell_cast_time
@@ -610,7 +682,7 @@ def on_key_up(key):
     if game_state == "Shop":
         if key == keys.SPACE:
             game_state = "Fight"
-            select_enemies_for_next_level()
+            #select_enemies_for_next_level()
             summoning_next_wave = True
            #print(summoning_next_wave)
             #reset_for_next_wave()
@@ -637,6 +709,7 @@ def update():
             if len(on_field_enemies) <= 0:
                 game_state = "Shop"
                 reset_for_next_wave()
+                select_enemies_for_next_level()
 
         enemy_behavior()
         
@@ -654,6 +727,8 @@ player = Player()
 
 spells = []
 equipped_spell = "chain_shot"
+
+select_enemies_for_next_level()
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
