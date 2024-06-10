@@ -16,6 +16,8 @@ game_state = "Shop"
 
 # Actors
 tiles = [Actor("tile", pos=((j * TILE_SIZE) + 50, (i * TILE_SIZE) + 50)) for i in range(int(HEIGHT / TILE_SIZE)) for j in range(int(WIDTH / 100))]
+enemies_in_next_round = Actor("enemies_in_next_round")
+enemies_in_next_round.pos = (200, 300)
 
 # Constants // Heres where you add monsters and spells
 spell_constants = {
@@ -579,6 +581,10 @@ def draw():
             spell.sprite.draw()   
         screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black") # type: ignore
 
+    if game_state == "Shop":
+        screen.fill("dark green")
+        enemies_in_next_round.draw()
+
 def on_mouse_down(pos):
     global last_spell_cast_time
 
@@ -647,7 +653,7 @@ def update():
 player = Player()
 
 spells = []
-equipped_spell = "penetrating_shot"
+equipped_spell = "chain_shot"
 
 clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
