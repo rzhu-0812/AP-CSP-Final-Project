@@ -27,7 +27,7 @@ spell_constants = {
     },
     "penetrating_shot": {
         "speed": 5,
-        "range": 600,
+        "range": 250,
         "cooldown": 1,
         "damage": 1
     },
@@ -123,7 +123,7 @@ def create_enemy(enemy_type):
         enemy.is_frozen = False
         enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
+        enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50) )
         return(enemy)
     if enemy_type == "goblin":
         enemy = Actor("goblin_enemy")
@@ -135,7 +135,7 @@ def create_enemy(enemy_type):
         enemy.is_frozen = False
         enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
+        enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50) )
         return(enemy)
     if enemy_type == "bat":
         enemy = Actor("bat_enemy")
@@ -147,7 +147,7 @@ def create_enemy(enemy_type):
         enemy.is_frozen = False
         enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
+        enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50) )
         return(enemy)
     if enemy_type == "assasin":
         enemy = Actor("assasin_enemy")
@@ -159,7 +159,7 @@ def create_enemy(enemy_type):
         enemy.is_frozen = False
         enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
+        enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50 ) )
         return(enemy)
     if enemy_type == "vampire":
         enemy = Actor("vampire_enemy")
@@ -171,7 +171,7 @@ def create_enemy(enemy_type):
         enemy.is_frozen = False
         enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
+        enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50) )
         return(enemy)
     if enemy_type == "necromancer":
         enemy = Actor("necromancer_enemy_placeholder")
@@ -184,7 +184,7 @@ def create_enemy(enemy_type):
         enemy.is_frozen = False
         enemy.last_freeze_time = 0
         enemy.freeze_duration = 3
-        enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
+        enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50) )
         return(enemy)
 
 def assassinate(enemy, health):
@@ -439,6 +439,11 @@ vampire = 15
 necromancer = 10
 speed_factor = 0.3
 
+monster_gate = Actor("monster_gate")
+monster_gate.x = random.randint(-400, 400) + CENTER_X
+monster_gate.y = random.randint(-200, 200) + CENTER_Y
+monster_gate.spawn_time = 50
+
 unchanging_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 
@@ -478,49 +483,52 @@ def select_enemies_for_next_level():
         if changing_types_of_enemies[x] <= abs(level_strength):
             selected_enemies_for_next_level.append(changing_types_of_enemies[x])
             level_strength += changing_types_of_enemies[x]
+
+    #print(len(selected_enemies_for_next_level))
     
 def reset_for_next_wave():
     global changing_types_of_enemies
     global unchanging_types_of_enemies
     global wave_number
     global level_strength
+    monster_gate.x = random.randint(-400, 400) + CENTER_X
+    monster_gate.y = random.randint(-200, 200) + CENTER_Y
     changing_types_of_enemies.clear()
     changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
     selected_enemies_for_next_level.clear()
     wave_number -= 1
     level_strength = wave_number
 
-
+summoning_next_wave = False
 summon_cooldown = 500
 def summon_next_wave():
     global game_state
     global summon_cooldown
-    game_state = "Fight"
-    while len(selected_enemies_for_next_level) > 0:
-        for enemy in selected_enemies_for_next_level:
-            if summon_cooldown <= 0:
-                summon_cooldown = 50000
-                if enemy == orc:
-                    on_field_enemies.append(create_enemy("orc"))
-                    selected_enemies_for_next_level.remove(enemy)
-                elif enemy == goblin:
-                    on_field_enemies.append(create_enemy("goblin"))
-                    selected_enemies_for_next_level.remove(enemy)
-                elif enemy == bat:
-                    on_field_enemies.append(create_enemy("bat"))
-                    selected_enemies_for_next_level.remove(enemy)
-                elif enemy == assasin:
-                    on_field_enemies.append(create_enemy("assasin"))
-                    selected_enemies_for_next_level.remove(enemy)
-                elif enemy == vampire:
-                    on_field_enemies.append(create_enemy("vampire"))
-                    selected_enemies_for_next_level.remove(enemy)
-                elif enemy == necromancer:
-                    on_field_enemies.append(create_enemy("necromancer"))
-                    selected_enemies_for_next_level.remove(enemy)
+    for enemy in selected_enemies_for_next_level:
+        if monster_gate.spawn_time <= 0:
+            monster_gate.spawn_time = random.randint(50, 200)
+            if enemy == orc:
+                on_field_enemies.append(create_enemy("orc"))
+                selected_enemies_for_next_level.remove(enemy)
+            elif enemy == goblin:
+                on_field_enemies.append(create_enemy("goblin"))
+                selected_enemies_for_next_level.remove(enemy)
+            elif enemy == bat:
+                on_field_enemies.append(create_enemy("bat"))
+                selected_enemies_for_next_level.remove(enemy)
+                #print("hello")
+            elif enemy == assasin:
+                on_field_enemies.append(create_enemy("assasin"))
+                selected_enemies_for_next_level.remove(enemy)
+            elif enemy == vampire:
+                on_field_enemies.append(create_enemy("vampire"))
+                selected_enemies_for_next_level.remove(enemy)
+            elif enemy == necromancer:
+                on_field_enemies.append(create_enemy("necromancer"))
+                selected_enemies_for_next_level.remove(enemy)
                     
-            else:
-                summon_cooldown -= 1
+        else:
+            monster_gate.spawn_time -= 1
 
 def enemy_movement():
     global speed_factor
@@ -563,11 +571,12 @@ def draw():
     if game_state == "Fight":
         for tile in tiles:
             tile.draw()
+        monster_gate.draw()
         player.sprite.draw()
         for enemy in on_field_enemies:
             enemy.draw()
         for spell in spells:
-            spell.sprite.draw()
+            spell.sprite.draw()   
         screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black") # type: ignore
 
 def on_mouse_down(pos):
@@ -591,25 +600,39 @@ def on_mouse_down(pos):
         last_spell_cast_time = current_time
 
 def on_key_up(key):
-    global game_state
+    global game_state, summoning_next_wave
     if game_state == "Shop":
         if key == keys.SPACE:
+            game_state = "Fight"
             select_enemies_for_next_level()
-            summon_next_wave()
-            reset_for_next_wave()
+            summoning_next_wave = True
+           #print(summoning_next_wave)
+            #reset_for_next_wave()
             player.health += 1
+            #print(game_state)
 
+           
 def update():
-    global game_state
+    global game_state, summoning_next_wave
 
     player.player_movement()
     enemy_movement()
     for spell in spells:
         spell.move()
     if game_state == "Fight":
+        if len(selected_enemies_for_next_level) > 0:
+            if summoning_next_wave == True:
+                #print(len(selected_enemies_for_next_level))
+                summon_next_wave()
+                #print("hello")
+                #pass
+        else:
+            summoning_next_wave = False
+            if len(on_field_enemies) <= 0:
+                game_state = "Shop"
+                reset_for_next_wave()
+
         enemy_behavior()
-        if len(on_field_enemies) <= 0:
-            game_state = "Shop"
         
         current_time = time.time()
         for enemy in on_field_enemies:
