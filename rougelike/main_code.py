@@ -46,8 +46,8 @@ spell_constants = {
     "freeze_shot": {
         "speed": 3,
         "range": 500,
-        "cooldown": 0.1,
-        "damage": 1
+        "cooldown": 0.5,
+        "damage": 0.5
     }
 }
 
@@ -94,7 +94,7 @@ class Player:
     def __init__(self):
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
-        self.health = 9999
+        self.health = 6
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
@@ -181,8 +181,19 @@ def create_enemy(enemy_type):
         enemy.damage = 0
         enemy.attack_cooldown = 0
         enemy.ability_delay = 500
+        enemy.is_frozen = False
+        enemy.last_freeze_time = 0
+        enemy.freeze_duration = 3
         enemy.pos = (CENTER_X + random.randint(-400, 400), CENTER_Y)
         return(enemy)
+
+def assassinate(enemy, health):
+    if enemy.type == "assasin":
+        if health <= 3:
+             enemy.distance_per_move = 6
+        else:
+            enemy.distance_per_move = 3
+        
     
 def vampire_bat_summon(vampire_x, vampire_y):
     summon_amount = random.randint(0, 3)
@@ -193,6 +204,9 @@ def vampire_bat_summon(vampire_x, vampire_y):
         enemy.health = 3
         enemy.damage = 1
         enemy.attack_cooldown = 2
+        enemy.is_frozen = False
+        enemy.last_freeze_time = 0
+        enemy.freeze_duration = 3
         enemy.pos = (vampire_x + random.randint(-50, 50), vampire_y + random.randint(-50, 50))
         on_field_enemies.append(enemy)
 
@@ -205,6 +219,9 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         enemy.health = 1
         enemy.damage = 1
         enemy.attack_cooldown = 2
+        enemy.is_frozen = False
+        enemy.last_freeze_time = 0
+        enemy.freeze_duration = 3
         enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
         on_field_enemies.append(enemy)
 
@@ -515,6 +532,7 @@ def enemy_movement():
 def enemy_behavior():
     global on_field_enemies
     for enemy in on_field_enemies:
+        assassinate(enemy, player.health)
         if enemy.type == "necromancer":
             if enemy.ability_delay <= 0:
                 necromancer_skeleton_summon(enemy.x, enemy.y)
@@ -579,6 +597,7 @@ def on_key_up(key):
             select_enemies_for_next_level()
             summon_next_wave()
             reset_for_next_wave()
+            player.health += 1
 
 def update():
     global game_state
@@ -591,14 +610,6 @@ def update():
         enemy_behavior()
         if len(on_field_enemies) <= 0:
             game_state = "Shop"
-        
-        for enemy in on_field_enemies:
-            if enemy.type == "necromancer":
-                if enemy.ability_delay <= 0:
-                    necromancer_skeleton_summon(enemy.x, enemy.y)
-                    enemy.ability_delay = 500
-                else:
-                    enemy.ability_delay -= 1
         
         current_time = time.time()
         for enemy in on_field_enemies:
