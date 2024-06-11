@@ -730,5 +730,5 @@ equipped_spell = "direct_shot"
 
 select_enemies_for_next_level()
 
-clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
+clock.schedule_interval(update, 1.0 / 45.0) # type: ignore
 pgzrun.go()
