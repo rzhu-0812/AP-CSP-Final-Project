@@ -726,7 +726,7 @@ def update():
 player = Player()
 
 spells = []
-equipped_spell = "chain_shot"
+equipped_spell = "direct_shot"
 
 select_enemies_for_next_level()
 
