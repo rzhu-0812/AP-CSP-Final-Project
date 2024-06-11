@@ -214,7 +214,7 @@ def create_enemy(enemy_type):
         enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50) )
         return(enemy)
     if enemy_type == "necromancer":
-        enemy = Actor("necromancer_enemy_placeholder")
+        enemy = Actor("necromancer_enemy")
         enemy.type = "necromancer"
         enemy.distance_per_move = 1
         enemy.health = 15
@@ -257,12 +257,17 @@ def vampire_bat_summon(vampire_x, vampire_y):
         on_field_enemies.append(enemy)
 
 def necromancer_skeleton_summon(necromancer_x, necromancer_y):
-    summon_amount = random.randint(2, 6)
-    for i in range(summon_amount):
-        enemy = Actor("skeleton_enemy_placeholder")
-        enemy.type = "skeleton"
+    summon_amount = random.randint(2, 7)
+    #summon_amount = 7
+    #print(summon_amount)
+    if summon_amount == 7:
+        enemy = Actor("necromancer_enemy_placeholder")
+        enemy.type = "super_skeleton"
+        #print(enemy)
+        #print(enemy.type)
         enemy.distance_per_move = 3
-        enemy.health = 1
+        enemy.health = int(len(dead_enemies)/3)
+        #print(int(len(dead_enemies)))
         enemy.damage = 1
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
@@ -270,6 +275,19 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         enemy.freeze_duration = 3
         enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
         on_field_enemies.append(enemy)
+    else:
+        for i in range(summon_amount):
+            enemy = Actor("skeleton_enemy_placeholder")
+            enemy.type = "skeleton"
+            enemy.distance_per_move = 3
+            enemy.health = 1
+            enemy.damage = 1
+            enemy.attack_cooldown = 2
+            enemy.is_frozen = False
+            enemy.last_freeze_time = 0
+            enemy.freeze_duration = 3
+            enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
+            on_field_enemies.append(enemy)
 
 
 # Spell Classes
@@ -314,6 +332,7 @@ class DirectShot(Spell):
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 if self in spells:
                     spells.remove(self)
 
@@ -332,6 +351,7 @@ class PenetratingShot(Spell):
                 self.enemies_hit.add(enemy)
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
 
 class BounceShot(Spell):
     def __init__(self, sprite):
@@ -364,6 +384,7 @@ class BounceShot(Spell):
             hit_enemy.health -= self.damage
             if hit_enemy.health <= 0:
                 on_field_enemies.remove(hit_enemy)
+                dead_enemies.append(enemy)
             self.enemies_hit.add(hit_enemy)
             self.bounce_off_enemy(hit_enemy)
             self.bounces += 1
@@ -418,6 +439,7 @@ class ChainShot(Spell):
                 self.chains += 1
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 self.target_next_enemy(enemy)
                 break
     
@@ -459,6 +481,7 @@ class FreezeShot(Spell):
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 if self in spells:
                     spells.remove(self)
 
@@ -509,7 +532,7 @@ num_vampires_sprite.pos = (116, 430)
 num_vampires_box = Rect(220, 405, 100, 50)
 necromancer = 10
 num_necromancers = 0
-num_necromancers_sprite = Actor("necromancer_enemy_placeholder")
+num_necromancers_sprite = Actor("necromancer_enemy")
 num_necromancers_sprite.scale = 0.75
 num_necromancers_sprite.pos = (116, 490)
 num_necromancers_box = Rect(220, 461, 100, 50)
@@ -531,6 +554,7 @@ life_number = -1
 life_number_box = Rect(50, 14, 300, 70)
 
 selected_enemies_for_next_level = []
+dead_enemies = []
 
 def selected_spell():
     global selected_spell_index
@@ -619,6 +643,7 @@ def reset_for_next_wave():
     monster_gate.y = random.randint(-200, 200) + CENTER_Y
     monster_gate.spawn_time = 500
     on_field_enemies.clear()
+    dead_enemies.clear()
     changing_types_of_enemies.clear()
     changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
     selected_enemies_for_next_level.clear()
