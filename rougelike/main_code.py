@@ -12,9 +12,9 @@ HEIGHT = 600
 CENTER_X = WIDTH / 2
 CENTER_Y = HEIGHT / 2
 TILE_SIZE = 100
-
 SPELL_ICON_SIZE = 50
 SELECTED_SPELL_SCALE = 2.0
+
 
 game_state = "Shop"
 spell_changed = True
@@ -46,6 +46,7 @@ spells = []
 spell_types = ["direct_shot", "penetrating_shot", "bounce_shot", "chain_shot", "freeze_shot"]
 equipped_spell = "chain_shot"
 selected_spell_index = spell_types.index(equipped_spell)
+
 
 # Constants // Heres where you add monsters and spells
 spell_constants = {
@@ -511,8 +512,40 @@ changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 
 level_strength = -1
 wave_number = -1
+wave_number_box = Rect(50, 524, 300, 70)
+life_number = -1
+life_number_box = Rect(50, 14, 300, 70)
 
 selected_enemies_for_next_level = []
+
+def selected_spell():
+    global selected_spell_index
+
+    match selected_spell_index:
+        case 0:
+            direct_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 1:
+            penetrating_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 2:
+            bounce_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 3:
+            chain_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 4:
+            freeze_shot_sprite.scale = SELECTED_SPELL_SCALE
+
+def reset_spell_scale():
+    direct_shot_sprite.scale = 1
+    penetrating_shot_sprite.scale = 1
+    bounce_shot_sprite.scale = 1
+    chain_shot_sprite.scale = 1
+    freeze_shot_sprite.scale = 1
+
+def draw_spell():
+    direct_shot_sprite.draw()
+    penetrating_shot_sprite.draw()
+    bounce_shot_sprite.draw()
+    chain_shot_sprite.draw()
+    freeze_shot_sprite.draw()
 
 
 def select_enemies_for_next_level():
@@ -645,34 +678,6 @@ def attack(enemy):
         player.take_damage(enemy.damage)
         last_attack_time = time.time()
 
-def selected_spell():
-    global selected_spell_index
-
-    match selected_spell_index:
-        case 0:
-            direct_shot_sprite.scale = SELECTED_SPELL_SCALE
-        case 1:
-            penetrating_shot_sprite.scale = SELECTED_SPELL_SCALE
-        case 2:
-            bounce_shot_sprite.scale = SELECTED_SPELL_SCALE
-        case 3:
-            chain_shot_sprite.scale = SELECTED_SPELL_SCALE
-        case 4:
-            freeze_shot_sprite.scale = SELECTED_SPELL_SCALE
-
-def reset_spell_scale():
-    direct_shot_sprite.scale = 1
-    penetrating_shot_sprite.scale = 1
-    bounce_shot_sprite.scale = 1
-    chain_shot_sprite.scale = 1
-    freeze_shot_sprite.scale = 1
-
-def draw_spell():
-    direct_shot_sprite.draw()
-    penetrating_shot_sprite.draw()
-    bounce_shot_sprite.draw()
-    chain_shot_sprite.draw()
-    freeze_shot_sprite.draw()
 
 # Main game loop
 def draw():
@@ -720,7 +725,13 @@ def draw():
             reset_spell_scale()
             selected_spell()
             spell_changed = False 
-        draw_spell()      
+        draw_spell()  
+
+        #screen.draw.rect(wave_number_box, color = ("black") )
+        screen.draw.textbox("Wave: " + str(abs(wave_number)), wave_number_box, color = ("black"))
+
+        #screen.draw.rect(life_number_box, color = ("black") )
+        screen.draw.textbox("Life: " + str(abs(life_number)), life_number_box, color = ("black"))
 
 def on_mouse_down(pos):
     global last_spell_cast_time, spell_changed, equipped_spell, selected_spell_index
@@ -761,8 +772,6 @@ def on_mouse_down(pos):
         
         selected_spell_index = spell_types.index(equipped_spell)
 
-        print(equipped_spell)
-
 def on_key_up(key):
     global game_state, summoning_next_wave
     if game_state == "Shop":
@@ -773,7 +782,6 @@ def on_key_up(key):
            #print(summoning_next_wave)
             #reset_for_next_wave()
             player.health += 1
-            
             #print(game_state)
 
            
@@ -795,7 +803,6 @@ def update():
             summoning_next_wave = False
             if len(on_field_enemies) <= 0:
                 game_state = "Shop"
-                player.coins += abs(wave_number)
                 reset_for_next_wave()
                 select_enemies_for_next_level()
 
@@ -813,7 +820,10 @@ def update():
 
 player = Player()
 
+spells = []
+equipped_spell = "direct_shot"
+
 select_enemies_for_next_level()
 
-clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
+clock.schedule_interval(update, 1.0 / 45.0) # type: ignore
 pgzrun.go()
