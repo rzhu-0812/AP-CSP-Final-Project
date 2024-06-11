@@ -13,12 +13,39 @@ CENTER_X = WIDTH / 2
 CENTER_Y = HEIGHT / 2
 TILE_SIZE = 100
 
+SPELL_ICON_SIZE = 50
+SELECTED_SPELL_SCALE = 2.0
+
 game_state = "Shop"
+spell_changed = True
 
 # Actors
 tiles = [Actor("tile", pos=((j * TILE_SIZE) + 50, (i * TILE_SIZE) + 50)) for i in range(int(HEIGHT / TILE_SIZE)) for j in range(int(WIDTH / 100))]
 enemies_in_next_round = Actor("enemies_in_next_round")
 enemies_in_next_round.pos = (200, 300)
+
+spell_shop = Actor("spells")
+spell_shop.pos = (800, 500)
+
+direct_shot_sprite = Actor("direct_shot")
+direct_shot_sprite.pos = (615, 500)
+
+penetrating_shot_sprite = Actor("penetrating_shot")
+penetrating_shot_sprite.pos = (710, 500)
+
+bounce_shot_sprite = Actor("bounce_shot")
+bounce_shot_sprite.pos = (805, 500)
+
+chain_shot_sprite = Actor("chain_shot")
+chain_shot_sprite.pos = (900, 500)
+
+freeze_shot_sprite = Actor("freeze_shot")
+freeze_shot_sprite.pos = (995, 500)
+
+spells = []
+spell_types = ["direct_shot", "penetrating_shot", "bounce_shot", "chain_shot", "freeze_shot"]
+equipped_spell = "chain_shot"
+selected_spell_index = spell_types.index(equipped_spell)
 
 # Constants // Heres where you add monsters and spells
 spell_constants = {
@@ -98,6 +125,7 @@ class Player:
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
         self.health = 6
+        self.coins = 0
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
@@ -617,11 +645,40 @@ def attack(enemy):
         player.take_damage(enemy.damage)
         last_attack_time = time.time()
 
+def selected_spell():
+    global selected_spell_index
+
+    match selected_spell_index:
+        case 0:
+            direct_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 1:
+            penetrating_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 2:
+            bounce_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 3:
+            chain_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 4:
+            freeze_shot_sprite.scale = SELECTED_SPELL_SCALE
+
+def reset_spell_scale():
+    direct_shot_sprite.scale = 1
+    penetrating_shot_sprite.scale = 1
+    bounce_shot_sprite.scale = 1
+    chain_shot_sprite.scale = 1
+    freeze_shot_sprite.scale = 1
+
+def draw_spell():
+    direct_shot_sprite.draw()
+    penetrating_shot_sprite.draw()
+    bounce_shot_sprite.draw()
+    chain_shot_sprite.draw()
+    freeze_shot_sprite.draw()
 
 # Main game loop
 def draw():
     global game_state
     global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_assasins
+    global spell_changed
     screen.clear() # type: ignore
 
     if game_state == "Fight":
@@ -634,6 +691,7 @@ def draw():
         for spell in spells:
             spell.sprite.draw()   
         screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black") # type: ignore
+        screen.draw.text(f"Coins: {player.coins}", (WIDTH - 90, 60), color="black") # type: ignore
 
     if game_state == "Shop":
         screen.fill("dark green")
@@ -657,25 +715,53 @@ def draw():
         #screen.draw.rect(num_necromancers_box, color = "black")
         screen.draw.textbox(str(num_necromancers), num_necromancers_box, color = ("black") )
 
-def on_mouse_down(pos):
-    global last_spell_cast_time
+        spell_shop.draw()
+        if spell_changed:
+            reset_spell_scale()
+            selected_spell()
+            spell_changed = False 
+        draw_spell()      
 
-    current_time = time.time()
-    equipped_spell_cooldown = spell_constants[equipped_spell]["cooldown"]
-    if current_time - last_spell_cast_time >= equipped_spell_cooldown:
-        if equipped_spell == "direct_shot":
-            spell = DirectShot(Actor("direct_shot", pos=(player.sprite.x, player.sprite.y)))
-        elif equipped_spell == "penetrating_shot":
-            spell = PenetratingShot(Actor("penetrating_shot", pos=(player.sprite.x, player.sprite.y)))
-        elif equipped_spell == "bounce_shot":
-            spell = BounceShot(Actor("bounce_shot", pos=(player.sprite.x, player.sprite.y)))
-        elif equipped_spell == "chain_shot":
-            spell = ChainShot(Actor("chain_shot", pos=(player.sprite.x, player.sprite.y)))
-        elif equipped_spell == "freeze_shot":
-            spell = FreezeShot(Actor("freeze_shot", pos=(player.sprite.x, player.sprite.y)))
-        spell.initialize_spell((player.sprite.x, player.sprite.y), pos)
-        spells.append(spell)
-        last_spell_cast_time = current_time
+def on_mouse_down(pos):
+    global last_spell_cast_time, spell_changed, equipped_spell, selected_spell_index
+
+    if game_state == "Fight":
+        current_time = time.time()
+        equipped_spell_cooldown = spell_constants[equipped_spell]["cooldown"]
+        if current_time - last_spell_cast_time >= equipped_spell_cooldown:
+            if equipped_spell == "direct_shot":
+                spell = DirectShot(Actor("direct_shot", pos=(player.sprite.x, player.sprite.y)))
+            elif equipped_spell == "penetrating_shot":
+                spell = PenetratingShot(Actor("penetrating_shot", pos=(player.sprite.x, player.sprite.y)))
+            elif equipped_spell == "bounce_shot":
+                spell = BounceShot(Actor("bounce_shot", pos=(player.sprite.x, player.sprite.y)))
+            elif equipped_spell == "chain_shot":
+                spell = ChainShot(Actor("chain_shot", pos=(player.sprite.x, player.sprite.y)))
+            elif equipped_spell == "freeze_shot":
+                spell = FreezeShot(Actor("freeze_shot", pos=(player.sprite.x, player.sprite.y)))
+            spell.initialize_spell((player.sprite.x, player.sprite.y), pos)
+            spells.append(spell)
+            last_spell_cast_time = current_time
+    if game_state == "Shop":
+        if direct_shot_sprite.collidepoint(pos):
+            equipped_spell = "direct_shot"
+            spell_changed = True
+        elif penetrating_shot_sprite.collidepoint(pos):
+            equipped_spell = "penetrating_shot"
+            spell_changed = True
+        elif bounce_shot_sprite.collidepoint(pos):
+            equipped_spell = "bounce_shot"
+            spell_changed = True
+        elif chain_shot_sprite.collidepoint(pos):
+            equipped_spell = "chain_shot"
+            spell_changed = True
+        elif freeze_shot_sprite.collidepoint(pos):
+            equipped_spell = "freeze_shot"
+            spell_changed = True
+        
+        selected_spell_index = spell_types.index(equipped_spell)
+
+        print(equipped_spell)
 
 def on_key_up(key):
     global game_state, summoning_next_wave
@@ -687,6 +773,7 @@ def on_key_up(key):
            #print(summoning_next_wave)
             #reset_for_next_wave()
             player.health += 1
+            
             #print(game_state)
 
            
@@ -708,6 +795,7 @@ def update():
             summoning_next_wave = False
             if len(on_field_enemies) <= 0:
                 game_state = "Shop"
+                player.coins += abs(wave_number)
                 reset_for_next_wave()
                 select_enemies_for_next_level()
 
@@ -725,10 +813,7 @@ def update():
 
 player = Player()
 
-spells = []
-equipped_spell = "direct_shot"
-
 select_enemies_for_next_level()
 
-clock.schedule_interval(update, 1.0 / 45.0) # type: ignore
+clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
 pgzrun.go()
