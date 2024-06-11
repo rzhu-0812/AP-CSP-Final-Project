@@ -122,6 +122,7 @@ enemy_constants = {
 
 # Player Class
 class Player:
+    global wave_number, game_state, life_number
     def __init__(self):
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
@@ -139,10 +140,17 @@ class Player:
             self.sprite.x = min(self.sprite.x + 2, WIDTH - 38)
     
     def take_damage(self, damage):
+        global wave_number, game_state, life_number
         self.health -= damage
         if self.health <= 0:
             print("You Died")
-            quit()
+            self.health = 6
+            wave_number = 0
+            life_number -= 1
+            game_state = "Shop"
+            reset_for_next_wave()
+            select_enemies_for_next_level()
+            
 
 def create_enemy(enemy_type):
     if enemy_type == "orc":
@@ -603,6 +611,7 @@ def reset_for_next_wave():
     global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_necromancers
     monster_gate.x = random.randint(-400, 400) + CENTER_X
     monster_gate.y = random.randint(-200, 200) + CENTER_Y
+    on_field_enemies.clear()
     changing_types_of_enemies.clear()
     changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
     selected_enemies_for_next_level.clear()
