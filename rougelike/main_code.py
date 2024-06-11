@@ -230,9 +230,15 @@ def create_enemy(enemy_type):
 def assassinate(enemy, health):
     if enemy.type == "assasin":
         if health <= 3:
-             enemy.distance_per_move = 6
+            if enemy.is_frozen:
+                enemy.distance_per_move = 3
+            else:
+                enemy.distance_per_move = 6
         else:
-            enemy.distance_per_move = 3
+            if enemy.is_frozen:
+                enemy.distance_per_move = 1.5
+            else:
+                enemy.distance_per_move = 3
         
     
 def vampire_bat_summon(vampire_x, vampire_y):
@@ -611,6 +617,7 @@ def reset_for_next_wave():
     global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_necromancers
     monster_gate.x = random.randint(-400, 400) + CENTER_X
     monster_gate.y = random.randint(-200, 200) + CENTER_Y
+    monster_gate.spawn_time = 500
     on_field_enemies.clear()
     changing_types_of_enemies.clear()
     changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
