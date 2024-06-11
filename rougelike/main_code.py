@@ -28,19 +28,19 @@ spell_shop = Actor("spells")
 spell_shop.pos = (800, 500)
 
 direct_shot_sprite = Actor("direct_shot")
-direct_shot_sprite.pos = (615, 500)
+direct_shot_sprite.pos = (615, 510)
 
 penetrating_shot_sprite = Actor("penetrating_shot")
-penetrating_shot_sprite.pos = (710, 500)
+penetrating_shot_sprite.pos = (710, 510)
 
 bounce_shot_sprite = Actor("bounce_shot")
-bounce_shot_sprite.pos = (805, 500)
+bounce_shot_sprite.pos = (805, 510)
 
 chain_shot_sprite = Actor("chain_shot")
-chain_shot_sprite.pos = (900, 500)
+chain_shot_sprite.pos = (900, 510)
 
 freeze_shot_sprite = Actor("freeze_shot")
-freeze_shot_sprite.pos = (995, 500)
+freeze_shot_sprite.pos = (995, 510)
 
 spells = []
 spell_types = ["direct_shot", "penetrating_shot", "bounce_shot", "chain_shot", "freeze_shot"]
@@ -668,6 +668,12 @@ def reset_spell_scale():
     freeze_shot_sprite.scale = 1
 
 def draw_spell():
+    global equipped_spell
+
+    formatted_spell_name = equipped_spell.replace("_", " ")
+
+    screen.draw.text(f"{formatted_spell_name} equipped", (720, 440), color="black")
+
     direct_shot_sprite.draw()
     penetrating_shot_sprite.draw()
     bounce_shot_sprite.draw()
