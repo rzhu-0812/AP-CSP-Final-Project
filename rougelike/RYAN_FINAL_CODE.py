@@ -531,6 +531,9 @@ changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 
 level_strength = -1
 wave_number = -1
+wave_number_box = Rect(50, 524, 300, 70)
+life_number = -1
+life_number_box = Rect(50, 14, 300, 70)
 
 selected_enemies_for_next_level = []
 dead_enemies = []
@@ -805,6 +808,14 @@ def draw():
         screen.draw.textbox(str(num_vampires), num_vampires_box, color = ("black") ) # type: ignore
         num_necromancers_sprite.draw()
         screen.draw.textbox(str(num_necromancers), num_necromancers_box, color = ("black") ) # type: ignore
+        
+        #screen.draw.rect(wave_number_box, color = ("black") )
+        screen.draw.textbox("Wave: " + str(abs(wave_number)), wave_number_box, color = ("black"))
+
+        #screen.draw.rect(life_number_box, color = ("black") )
+        screen.draw.textbox("Life: " + str(abs(life_number)), life_number_box, color = ("black"))
+
+
 
         upgrades_menu.draw()
         damage.draw()
@@ -821,7 +832,7 @@ def draw():
     player_hearts()
     coin.draw()
     screen.draw.text(f"{player.coins}", (WIDTH - 80, 50), color="black", fontsize=45) # type: ignore
-    screen.draw.text(f"Wave {abs(wave_number)}", (10, 10), color="black", fontsize=30) # type: ignore
+    #screen.draw.text(f"Wave {abs(wave_number)}", (10, 10), color="black", fontsize=30) # type: ignore
 
 def on_mouse_down(pos):
     global last_spell_cast_time, spell_changed, equipped_spell, selected_spell_index
