@@ -66,6 +66,22 @@ freeze_shot_sprite = Actor("freeze_shot")
 freeze_shot_sprite.pos = (988, 500)
 freeze_owned = False
 
+damage = Actor("damage")
+damage.pos = (620, 180)
+damage.scale = 0.75
+
+range_up = Actor("range")
+range_up.pos = (842, 180)
+range_up.scale = 0.75
+
+reload_speed = Actor("reload_speed")
+reload_speed.pos = (620, 270)
+reload_speed.scale = 0.75
+
+shield = Actor("shield")
+shield.pos = (842, 270)
+shield.scale = 0.75
+
 spells = []
 spell_types = ["direct_shot", "penetrating_shot", "bounce_shot", "chain_shot", "freeze_shot"]
 equipped_spell = "direct_shot"
@@ -791,6 +807,10 @@ def draw():
         screen.draw.textbox(str(num_necromancers), num_necromancers_box, color = ("black") ) # type: ignore
 
         upgrades_menu.draw()
+        damage.draw()
+        range_up.draw()
+        reload_speed.draw()
+        shield.draw()
 
         spell_shop.draw()
         if spell_changed:
