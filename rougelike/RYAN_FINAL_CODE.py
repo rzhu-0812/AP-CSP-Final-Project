@@ -72,33 +72,33 @@ selected_spell_index = spell_types.index(equipped_spell)
 spell_constants = {
     "direct_shot": {
         "speed": 10,
-        "range": 350,
-        "cooldown": 0.75,
-        "damage": 0.75
+        "range": 350 + range_upgrades * 25,
+        "cooldown": 0.75 + reload_speed_upgrades * -0.05,
+        "damage": 0.75 + damage_upgrades * 0.05
     },
     "penetrating_shot": {
         "speed": 5,
-        "range": 200,
-        "cooldown": 1,
-        "damage": 0.75
+        "range": 200 + range_upgrades * 20,
+        "cooldown": 1 + reload_speed_upgrades * -0.05,
+        "damage": 0.75 + damage_upgrades * 0.05
     },
     "bounce_shot": {
         "speed": 3,
-        "range": 500,
-        "cooldown": 1,
-        "damage": 0.25
+        "range": 500 + range_upgrades * 250,
+        "cooldown": 1 + reload_speed_upgrades * -0.05,
+        "damage": 0.25 + damage_upgrades * 0.05
     },
     "chain_shot": {
         "speed": 3,
-        "range": 5000,
-        "cooldown": 3,
-        "damage": 1
+        "range": 5000 + range_upgrades * 25,
+        "cooldown": 3 + reload_speed_upgrades * -0.05,
+        "damage": 1 + damage_upgrades * 0.1
     },
     "freeze_shot": {
         "speed": 3,
-        "range": 500,
-        "cooldown": 0.5,
-        "damage": 0.25
+        "range": 500 + range_upgrades * 25,
+        "cooldown": 0.5 + reload_speed_upgrades * -0.05,
+        "damage": 0.25 + damage_upgrades * 0.05
     }
 }
 
@@ -477,7 +477,7 @@ num_vampires_sprite.pos = (116, 430)
 num_vampires_box = Rect(220, 405, 100, 50)
 necromancer = 10
 num_necromancers = 0
-num_necromancers_sprite = Actor("necromancer_enemy_placeholder")
+num_necromancers_sprite = Actor("necromancer_enemy")
 num_necromancers_sprite.scale = 0.75
 num_necromancers_sprite.pos = (116, 490)
 num_necromancers_box = Rect(220, 461, 100, 50)
@@ -744,7 +744,7 @@ def purchase_spells(spell):
 def draw():
     global game_state
     global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_assasins
-    global spell_changed
+    global spell_changed, wave_number
     screen.clear() # type: ignore
 
     if game_state == "Fight":
@@ -788,6 +788,7 @@ def draw():
     player_hearts()
     coin.draw()
     screen.draw.text(f"{player.coins}", (WIDTH - 60, 53), color="black", fontsize=45) # type: ignore
+    screen.draw.text(f"Wave {abs(wave_number)}", (10, 10), color="black", fontsize=30)
 
 def on_mouse_down(pos):
     global last_spell_cast_time, spell_changed, equipped_spell, selected_spell_index
