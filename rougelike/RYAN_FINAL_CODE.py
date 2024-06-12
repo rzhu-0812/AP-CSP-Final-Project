@@ -32,6 +32,8 @@ coin = Actor("coin")
 coin.pos = (WIDTH - 99, 65)
 coin.scale = 1.75
 
+shop_coin = "coin"
+
 full_heart = "full_heart"
 half_heart = "half_heart"
 empty_heart = "empty_heart"
@@ -41,19 +43,19 @@ direct_shot_sprite.pos = (615, 500)
 direct_owned = True
 
 penetrating_shot_sprite = Actor("penetrating_shot")
-penetrating_shot_sprite.pos = (710, 500)
+penetrating_shot_sprite.pos = (706, 500)
 penetrating_owned = False
 
 bounce_shot_sprite = Actor("bounce_shot")
-bounce_shot_sprite.pos = (805, 500)
+bounce_shot_sprite.pos = (803, 500)
 bounce_owned = False
 
 chain_shot_sprite = Actor("chain_shot")
-chain_shot_sprite.pos = (900, 500)
+chain_shot_sprite.pos = (897, 500)
 chain_owned = False
 
 freeze_shot_sprite = Actor("freeze_shot")
-freeze_shot_sprite.pos = (995, 500)
+freeze_shot_sprite.pos = (988, 500)
 freeze_owned = False
 
 spells = []
@@ -65,71 +67,33 @@ selected_spell_index = spell_types.index(equipped_spell)
 spell_constants = {
     "direct_shot": {
         "speed": 10,
-        "range": 350,
+        "range": 400,
         "cooldown": 0.75,
-        "damage": 0.75
+        "damage": 1
     },
     "penetrating_shot": {
         "speed": 5,
-        "range": 200,
+        "range": 250,
         "cooldown": 1,
-        "damage": 0.75
+        "damage": 1
     },
     "bounce_shot": {
         "speed": 3,
-        "range": 500,
+        "range": 10000,
         "cooldown": 1,
-        "damage": 0.25
+        "damage": 0.5
     },
     "chain_shot": {
         "speed": 3,
         "range": 5000,
-        "cooldown": 3,
+        "cooldown": 1.5,
         "damage": 1
     },
     "freeze_shot": {
         "speed": 3,
         "range": 500,
         "cooldown": 0.5,
-        "damage": 0.25
-    }
-}
-
-enemy_constants = {
-    "orc": {
-        "actor": Actor("orc_enemy_placeholder"),  
-        "distance_per_move": 2, 
-        "health": 5, 
-        "damage": 1, 
-        "attack_cooldown": 5
-    },
-    "goblin": {
-        "actor": Actor("goblin_enemy_placeholder"),
-        "distance_per_move": 6, 
-        "health": 3, 
-        "damage": 1, 
-        "attack_cooldown": 5
-    },
-    "bat": {
-        "actor": Actor("bat_enemy_placeholder"),
-        "distance_per_move": 5,  
-        "health": 3, 
-        "damage": 1, 
-        "attack_cooldown": 5
-    },
-    "assasin": {
-        "actor": Actor("assasin_enemy_placeholder"),
-        "distance_per_move": 3, 
-        "health": 4, 
-        "damage": 2, 
-        "attack_cooldown": 10
-    },
-    "vampire": {
-        "actor": Actor("vampire_enemy_placeholder"),
-        "distance_per_move": 1, 
-        "health": 10, 
-        "damage": 2, 
-        "attack_cooldown": 10
+        "damage": 0.5
     }
 }
 
@@ -139,7 +103,7 @@ class Player:
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
         self.health = 6
-        self.coins = 0
+        self.coins = 30 + 120 + 35 + 100
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
@@ -219,7 +183,7 @@ def create_enemy(enemy_type):
         enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50) )
         return(enemy)
     if enemy_type == "necromancer":
-        enemy = Actor("necromancer_enemy_placeholder")
+        enemy = Actor("necromancer_enemy")
         enemy.type = "necromancer"
         enemy.distance_per_move = 1
         enemy.health = 15
@@ -256,17 +220,12 @@ def vampire_bat_summon(vampire_x, vampire_y):
         on_field_enemies.append(enemy)
 
 def necromancer_skeleton_summon(necromancer_x, necromancer_y):
-    summon_amount = random.randint(2, 7)
-    #summon_amount = 7
-    #print(summon_amount)
-    if summon_amount == 7:
-        enemy = Actor("necromancer_enemy_placeholder")
-        enemy.type = "super_skeleton"
-        #print(enemy)
-        #print(enemy.type)
+    summon_amount = random.randint(2, 6)
+    for _ in range(summon_amount):
+        enemy = Actor("skeleton_enemy")
+        enemy.type = "skeleton"
         enemy.distance_per_move = 3
-        enemy.health = int(len(dead_enemies)/3)
-        #print(int(len(dead_enemies)))
+        enemy.health = 1
         enemy.damage = 1
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
@@ -274,19 +233,6 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         enemy.freeze_duration = 3
         enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
         on_field_enemies.append(enemy)
-    else:
-        for i in range(summon_amount):
-            enemy = Actor("skeleton_enemy_placeholder")
-            enemy.type = "skeleton"
-            enemy.distance_per_move = 3
-            enemy.health = 1
-            enemy.damage = 1
-            enemy.attack_cooldown = 2
-            enemy.is_frozen = False
-            enemy.last_freeze_time = 0
-            enemy.freeze_duration = 3
-            enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
-            on_field_enemies.append(enemy)
 
 
 # Spell Classes
@@ -700,7 +646,7 @@ def reset_spell_scale():
     freeze_shot_sprite.scale = 1
 
 def draw_spell():
-    global equipped_spell
+    global equipped_spell, penetrating_owned, bounce_owned, chain_owned, freeze_owned
 
     formatted_spell_name = equipped_spell.replace("_", " ")
 
@@ -712,8 +658,40 @@ def draw_spell():
     chain_shot_sprite.draw()
     freeze_shot_sprite.draw()
 
-    screen.draw.text(f"owned", (720, 440), color="black")
+    screen.draw.text("owned", (590, 530), color="black")
 
+    if penetrating_owned:
+        screen.draw.text("owned", (683, 530), color="black")
+    else:
+        coin = Actor(shop_coin)
+        coin.pos = (690, 540)
+        screen.draw.text("30", (705, 533), color="black")
+        coin.draw()
+    
+    if bounce_owned:
+        screen.draw.text("owned", (778, 530), color="black")
+    else:
+        coin = Actor(shop_coin)
+        coin.pos = (789, 540)
+        screen.draw.text("100", (802, 533), color="black")
+        coin.draw()
+    
+    if chain_owned:
+        screen.draw.text("owned", (870, 530), color="black")
+    else:
+        coin = Actor(shop_coin)
+        coin.pos = (880, 540)
+        screen.draw.text("120", (895, 533), color="black")
+        coin.draw()
+    
+    if freeze_owned:
+        screen.draw.text("owned", (966, 530), color="black")
+    else:
+        coin = Actor(shop_coin)
+        coin.pos = (970, 540)
+        screen.draw.text("35", (985, 533), color="black")
+        coin.draw()
+    
 def player_hearts():
     hearts = []
     player_health = player.health
@@ -738,20 +716,23 @@ def player_hearts():
         heart.draw()
 
 def purchase_spells(spell):
-    global penetrating_owned, bounce_owned, chain_owned, freeze_owned
+    global penetrating_owned, bounce_owned, chain_owned, freeze_owned, spell_types
 
     if spell == "penetrating_shot" and player.coins >= 30:
         penetrating_owned = True
         player.coins -= 30
-    elif spell == "bounce_shot" and player.coins >= 35:
-        bounce_owned = True
-        player.coins -= 35
-    elif spell == "chain_shot" and player.coins >= 60:
-        chain_owned = True
-        player.coins -= 60
     elif spell == "bounce_shot" and player.coins >= 100:
         bounce_owned = True
         player.coins -= 100
+    elif spell == "chain_shot" and player.coins >= 120:
+        chain_owned = True
+        player.coins -= 120
+    elif spell == "freeze_shot" and player.coins >= 35:
+        freeze_owned = True
+        player.coins -= 35
+    elif spell in [spell_types] and player.coins < 30:
+        screen.draw.text("don't have enough coins", (720, 440), color="black")
+        time.sleep(2)
 
 
 # Main game loop
@@ -853,8 +834,6 @@ def on_mouse_down(pos):
                 purchase_spells("freeze_shot")
 
         selected_spell_index = spell_types.index(equipped_spell)
-
-        print(equipped_spell)
 
 def on_key_up(key):
     global game_state, summoning_next_wave
