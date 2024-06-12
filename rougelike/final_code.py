@@ -87,6 +87,10 @@ shield = Actor("shield")
 shield.pos = (842, 270)
 shield.scale = 0.75
 
+damage_bought = False
+range_bought = False
+reload_speed_bought = False
+
 spells = []
 spell_types = ["direct_shot", "penetrating_shot", "bounce_shot", "chain_shot", "freeze_shot"]
 equipped_spell = "direct_shot"
@@ -99,30 +103,45 @@ spell_constants = {
         "range": 350,
         "cooldown": 0.75,
         "damage": 0.75,
+        "base_damage": 350,
+        "base_cooldown": 0.75,
+        "base_damage": 0.75
     },
     "penetrating_shot": {
         "speed": 5,
         "range": 200,
         "cooldown": 1,
-        "damage": 0.75
+        "damage": 0.75,
+        "base_range": 200,
+        "base_cooldown": 1,
+        "base_damage": 0.75
     },
     "bounce_shot": {
         "speed": 3,
         "range": 500,
         "cooldown": 1,
-        "damage": 0.25
+        "damage": 0.25,
+        "base_range": 500,
+        "base_cooldown": 1,
+        "base_damage": 0.25
     },
     "chain_shot": {
         "speed": 3,
         "range": 5000,
         "cooldown": 3,
-        "damage": 1
+        "damage": 1,
+        "base_range": 5000,
+        "base_cooldown": 3,
+        "base_damage": 1
     },
     "freeze_shot": {
         "speed": 3,
         "range": 500,
         "cooldown": 0.5,
-        "damage": 0.25
+        "damage": 0.25,
+        "base_range": 500,
+        "base_cooldown": 0.5,
+        "base_damage": 0.25
     }
 }
 
@@ -132,7 +151,7 @@ class Player:
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
         self.health = 6
-        self.coins = 0
+        self.coins = 1000
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
@@ -143,12 +162,16 @@ class Player:
             self.sprite.x = max(self.sprite.x - 2, 0 + 38)
         elif keyboard.D or keyboard.right: # type: ignore
             self.sprite.x = min(self.sprite.x + 2, WIDTH - 38)
-    def take_damage(self, damage):
+
+    def take_damage(self, enemy):
         global wave_number, game_state, life_number
-        if shield_upgrade <= damage:
-            self.health -= damage - shield_upgrade
+        if enemy.type == "goblin":
+            self.coins -= 1
+        if enemy.type == "super_skeleton":
+            self.health -= 1
+        elif shield_upgrade <= enemy.damage:
+            self.health -= enemy.damage - shield_upgrade
         if self.health <= 0:
-            print("You Died")
             self.health = 6
             wave_number = 0
             life_number -= 1
@@ -266,7 +289,7 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         enemy.type = "super_skeleton"
         enemy.distance_per_move = 3
         enemy.health = int(len(dead_enemies)/3)
-        enemy.damage = shield_upgrade + 1
+        enemy.damage = 0
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
         enemy.last_freeze_time = 0
@@ -298,7 +321,6 @@ class Spell:
         self.cooldown = constants["cooldown"]
         self.damage = constants["damage"]
         self.enemies_hit = set()
-        self.update_stats()
     
     def move(self):
         self.sprite.x += self.direction_x
@@ -307,26 +329,7 @@ class Spell:
 
         if self.range <= 0:
             spells.remove(self)
-            return
-    
-    def update_stats(self):
-        if self.spell_type == "direct_shot":
-            self.damage += damage_upgrades * 0.05
-            self.range += range_upgrades * 25
-        elif self.spell_type == "penetrating_shot":
-            self.damage += damage_upgrades * 0.05
-            self.range += range_upgrades * 20
-        elif self.spell_type == "bounce_shot":
-            self.damage += damage_upgrades * 0.05
-            self.range += range_upgrades * 250
-        elif self.spell_type == "chain_shot":
-            self.damage += damage_upgrades * 0.1
-            self.range += range_upgrades * 25
-        elif self.spell_type == "freeze_shot":
-            self.damage += damage_upgrades * 0.05
-            self.range += range_upgrades * 25
-        print("updated")
-        
+            return    
     
     def initialize_spell(self, player_pos, target_pos):
         self.sprite.pos = player_pos
@@ -416,21 +419,20 @@ class BounceShot(Spell):
             self.direction_y *= -1
 
     def bounce_off_enemy(self, enemy):
-        # Calculate new direction based on the position of the enemy
         enemy_center_x = enemy.x + enemy.width / 2
         enemy_center_y = enemy.y + enemy.height / 2
         spell_center_x = self.sprite.x + self.sprite.width / 2
         spell_center_y = self.sprite.y + self.sprite.height / 2
 
         if enemy_center_x > spell_center_x:
-            self.direction_x = -self.speed  # Change direction to left
+            self.direction_x = -self.speed
         elif enemy_center_x < spell_center_x:
-            self.direction_x = self.speed  # Change direction to right
+            self.direction_x = self.speed
 
         if enemy_center_y > spell_center_y:
-            self.direction_y = -self.speed  # Change direction to up
+            self.direction_y = -self.speed
         elif enemy_center_y < spell_center_y:
-            self.direction_y = self.speed  # Change direction to down
+            self.direction_y = self.speed
 
 class ChainShot(Spell):
     def __init__(self, sprite):
@@ -567,9 +569,9 @@ changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 
 level_strength = -1
 wave_number = -1
-wave_number_box = Rect(50, 524, 300, 70)
+wave_number_box = Rect(50, 524, 300, 70) # type: ignore
 life_number = -1
-life_number_box = Rect(50, 14, 300, 70)
+life_number_box = Rect(50, 14, 300, 70) # type: ignore
 
 selected_enemies_for_next_level = []
 dead_enemies = []
@@ -701,7 +703,7 @@ def can_attack(enemy):
 def attack(enemy):
     global last_attack_time
     if can_attack(enemy):
-        player.take_damage(enemy.damage)
+        player.take_damage(enemy)
         last_attack_time = time.time()
 
 def selected_spell():
@@ -812,6 +814,35 @@ def purchase_spells(spell):
         freeze_owned = True
         player.coins -= 35
 
+def update_spells():
+    global damage_bought, range_bought, reload_speed_bought
+    global equipped_spell
+
+    if damage_bought:
+        for spell in spell_types:
+            if spell == "chain_shot":
+                spell_constants[spell]["damage"] = spell_constants[spell]["base_damage"] + damage_upgrades * 0.1
+            else:
+                spell_constants[spell]["damage"] = spell_constants[spell]["base_damage"] + damage_upgrades * 0.05
+        damage_bought = False
+
+    elif range_bought:
+        for spell in spell_types:
+            if equipped_spell == "penetrating_shot":
+                spell_constants[equipped_spell]["range"] = spell_constants[equipped_spell]["base_range"] + range_upgrades * 20
+            elif equipped_spell == "bounce_shot":
+                spell_constants[equipped_spell]["range"] = spell_constants[equipped_spell]["base_range"] + range_upgrades * 250
+            else:
+                spell_constants[equipped_spell]["range"] = spell_constants[equipped_spell]["base_range"] + range_upgrades * 25
+        range_bought = False
+
+    elif reload_speed_bought:
+        for spell in spell_types:
+            spell_constants[equipped_spell]["cooldown"] = spell_constants[equipped_spell]["base_cooldown"] + reload_speed_upgrades * -0.05
+            print(spell_constants[equipped_spell]["cooldown"])
+            print(spell_constants[equipped_spell]["base_cooldown"])
+        range_bought = False
+
 def draw_upgrades():
     global damage_upgrades, range_upgrades, reload_speed_upgrades, shield_upgrade
     global damage_cost, range_cost, reload_speed_cost, shield_cost
@@ -871,11 +902,8 @@ def draw():
         num_necromancers_sprite.draw()
         screen.draw.textbox(str(num_necromancers), num_necromancers_box, color = ("black") ) # type: ignore
 
-        #screen.draw.rect(wave_number_box, color = ("black") )
-        screen.draw.textbox("Wave: " + str(abs(wave_number)), wave_number_box, color = ("black"))
-
-        #screen.draw.rect(life_number_box, color = ("black") )
-        screen.draw.textbox("Life: " + str(abs(life_number)), life_number_box, color = ("black"))
+        screen.draw.textbox("Wave: " + str(abs(wave_number)), wave_number_box, color = ("black")) # type: ignore
+        screen.draw.textbox("Life: " + str(abs(life_number)), life_number_box, color = ("black")) # type: ignore
 
         upgrades_menu.draw()
         draw_upgrades()
@@ -895,6 +923,7 @@ def on_mouse_down(pos):
     global last_spell_cast_time, spell_changed, equipped_spell, selected_spell_index
     global damage_cost, range_cost, reload_speed_cost, shield_cost
     global damage_upgrades, range_upgrades, reload_speed_upgrades, shield_upgrade
+    global damage_bought, range_bought, reload_speed_bought
 
     if game_state == "Fight":
         current_time = time.time()
@@ -946,16 +975,19 @@ def on_mouse_down(pos):
                 player.coins -= damage_cost
                 damage_cost *= 2
                 damage_upgrades += 1
+                damage_bought = True
         elif range_up.collidepoint(pos):
             if player.coins >= range_cost:
                 player.coins -= range_cost
                 range_cost *= 2
                 range_upgrades += 1
+                range_bought = True
         elif reload_speed.collidepoint(pos):
             if player.coins >= reload_speed_cost:
                 player.coins -= reload_speed_cost
                 reload_speed_cost *= 2
                 reload_speed_upgrades += 1
+                reload_speed_bought = True
         elif shield.collidepoint(pos):
             if player.coins >= shield_cost:
                 player.coins -= shield_cost
@@ -978,6 +1010,7 @@ def update():
     player.player_movement()
     enemy_movement()
     for spell in spells:
+        update_spells()
         spell.move()
     if game_state == "Fight":
         if len(selected_enemies_for_next_level) > 0:
@@ -1003,6 +1036,9 @@ def update():
                  
     elif game_state == "Shop":
         spells.clear()
+
+    if player.health > 6:
+        player.health = 6
 
 player = Player()
 
