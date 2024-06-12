@@ -263,7 +263,7 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
     #summon_amount = 7
     #print(summon_amount)
     if summon_amount == 7:
-        enemy = Actor("necromancer_enemy_placeholder")
+        enemy = Actor("super_skeleton_enemy")
         enemy.type = "super_skeleton"
         #print(enemy)
         #print(enemy.type)
