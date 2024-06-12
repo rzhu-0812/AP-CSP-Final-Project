@@ -256,12 +256,17 @@ def vampire_bat_summon(vampire_x, vampire_y):
         on_field_enemies.append(enemy)
 
 def necromancer_skeleton_summon(necromancer_x, necromancer_y):
-    summon_amount = random.randint(2, 6)
-    for _ in range(summon_amount):
-        enemy = Actor("skeleton_enemy_placeholder")
-        enemy.type = "skeleton"
+    summon_amount = random.randint(2, 7)
+    #summon_amount = 7
+    #print(summon_amount)
+    if summon_amount == 7:
+        enemy = Actor("necromancer_enemy_placeholder")
+        enemy.type = "super_skeleton"
+        #print(enemy)
+        #print(enemy.type)
         enemy.distance_per_move = 3
-        enemy.health = 1
+        enemy.health = int(len(dead_enemies)/3)
+        #print(int(len(dead_enemies)))
         enemy.damage = 1
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
@@ -269,6 +274,19 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         enemy.freeze_duration = 3
         enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
         on_field_enemies.append(enemy)
+    else:
+        for i in range(summon_amount):
+            enemy = Actor("skeleton_enemy_placeholder")
+            enemy.type = "skeleton"
+            enemy.distance_per_move = 3
+            enemy.health = 1
+            enemy.damage = 1
+            enemy.attack_cooldown = 2
+            enemy.is_frozen = False
+            enemy.last_freeze_time = 0
+            enemy.freeze_duration = 3
+            enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
+            on_field_enemies.append(enemy)
 
 
 # Spell Classes
