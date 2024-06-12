@@ -12,9 +12,9 @@ HEIGHT = 600
 CENTER_X = WIDTH / 2
 CENTER_Y = HEIGHT / 2
 TILE_SIZE = 100
-
 SPELL_ICON_SIZE = 50
 SELECTED_SPELL_SCALE = 2.0
+
 
 game_state = "Shop"
 spell_changed = True
@@ -26,72 +26,61 @@ enemies_in_next_round.pos = (200, 300)
 
 spell_shop = Actor("spells")
 spell_shop.pos = (800, 500)
-owned_spells = ['direct_shot']
-
-coin = Actor("coin")
-coin.pos = (WIDTH - 99, 65)
-coin.scale = 1.75
-
-full_heart = "full_heart"
-half_heart = "half_heart"
-empty_heart = "empty_heart"
 
 direct_shot_sprite = Actor("direct_shot")
 direct_shot_sprite.pos = (615, 500)
-direct_owned = True
 
 penetrating_shot_sprite = Actor("penetrating_shot")
 penetrating_shot_sprite.pos = (710, 500)
-penetrating_owned = False
 
 bounce_shot_sprite = Actor("bounce_shot")
 bounce_shot_sprite.pos = (805, 500)
-bounce_owned = False
 
 chain_shot_sprite = Actor("chain_shot")
 chain_shot_sprite.pos = (900, 500)
-chain_owned = False
 
 freeze_shot_sprite = Actor("freeze_shot")
 freeze_shot_sprite.pos = (995, 500)
-freeze_owned = False
 
 spells = []
 spell_types = ["direct_shot", "penetrating_shot", "bounce_shot", "chain_shot", "freeze_shot"]
-equipped_spell = "direct_shot"
+equipped_spell = "chain_shot"
 selected_spell_index = spell_types.index(equipped_spell)
+
 
 # Constants // Heres where you add monsters and spells
 spell_constants = {
     "direct_shot": {
         "speed": 10,
-        "range": 350,
-        "cooldown": 0.75,
-        "damage": 0.75
+        "range": 350, #25
+        "cooldown": 0.75, #-0.05
+        "damage": 0.75 #0.05
     },
     "penetrating_shot": {
         "speed": 5,
-        "range": 200,
-        "cooldown": 1,
-        "damage": 0.75
+        "range": 200, #20
+        "cooldown": 1, #-0.05
+        "damage": 0.75 #0.05
     },
     "bounce_shot": {
         "speed": 3,
-        "range": 500,
-        "cooldown": 1,
-        "damage": 0.25
+        "range": 500, #250
+        "cooldown": 1, #-0.05
+        "damage": 0.25 #0.05
     },
     "chain_shot": {
         "speed": 3,
-        "range": 5000,
-        "cooldown": 3,
-        "damage": 1
+        "range": 5000, #25
+        "cooldown": 3, #-0.05
+        "damage": 1 #0.1
     },
     "freeze_shot": {
         "speed": 3,
-        "range": 500,
-        "cooldown": 0.5,
-        "damage": 0.25
+        "range": 500, #25
+        "cooldown": 0.5, #-0.05
+        "damage": 0.25 #0.05
+
+        #if cooldown reaches 0 or less, make it 0.01 and unchangable from that point (if possible, if not, just make it zero)
     }
 }
 
@@ -135,6 +124,7 @@ enemy_constants = {
 
 # Player Class
 class Player:
+    global wave_number, game_state, life_number
     def __init__(self):
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
@@ -152,10 +142,17 @@ class Player:
             self.sprite.x = min(self.sprite.x + 2, WIDTH - 38)
     
     def take_damage(self, damage):
+        global wave_number, game_state, life_number
         self.health -= damage
         if self.health <= 0:
             print("You Died")
-            quit()
+            self.health = 6
+            wave_number = 0
+            life_number -= 1
+            game_state = "Shop"
+            reset_for_next_wave()
+            select_enemies_for_next_level()
+            
 
 def create_enemy(enemy_type):
     if enemy_type == "orc":
@@ -219,7 +216,7 @@ def create_enemy(enemy_type):
         enemy.pos = (monster_gate.x + random.randint(-50, 50), monster_gate.y + random.randint(-50, 50) )
         return(enemy)
     if enemy_type == "necromancer":
-        enemy = Actor("necromancer_enemy_placeholder")
+        enemy = Actor("necromancer_enemy")
         enemy.type = "necromancer"
         enemy.distance_per_move = 1
         enemy.health = 15
@@ -235,14 +232,20 @@ def create_enemy(enemy_type):
 def assassinate(enemy, health):
     if enemy.type == "assasin":
         if health <= 3:
-             enemy.distance_per_move = 6
+            if enemy.is_frozen:
+                enemy.distance_per_move = 3
+            else:
+                enemy.distance_per_move = 6
         else:
-            enemy.distance_per_move = 3
+            if enemy.is_frozen:
+                enemy.distance_per_move = 1.5
+            else:
+                enemy.distance_per_move = 3
         
     
 def vampire_bat_summon(vampire_x, vampire_y):
     summon_amount = random.randint(0, 3)
-    for _ in range(summon_amount):
+    for i in range(summon_amount):
         enemy = Actor("bat_enemy")
         enemy.type = "bat"
         enemy.distance_per_move = 5
@@ -276,7 +279,7 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         on_field_enemies.append(enemy)
     else:
         for i in range(summon_amount):
-            enemy = Actor("skeleton_enemy_placeholder")
+            enemy = Actor("skeleton_enemy")
             enemy.type = "skeleton"
             enemy.distance_per_move = 3
             enemy.health = 1
@@ -331,6 +334,7 @@ class DirectShot(Spell):
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 if self in spells:
                     spells.remove(self)
 
@@ -349,6 +353,7 @@ class PenetratingShot(Spell):
                 self.enemies_hit.add(enemy)
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
 
 class BounceShot(Spell):
     def __init__(self, sprite):
@@ -381,6 +386,7 @@ class BounceShot(Spell):
             hit_enemy.health -= self.damage
             if hit_enemy.health <= 0:
                 on_field_enemies.remove(hit_enemy)
+                dead_enemies.append(enemy)
             self.enemies_hit.add(hit_enemy)
             self.bounce_off_enemy(hit_enemy)
             self.bounces += 1
@@ -435,6 +441,7 @@ class ChainShot(Spell):
                 self.chains += 1
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 self.target_next_enemy(enemy)
                 break
     
@@ -476,6 +483,7 @@ class FreezeShot(Spell):
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 if self in spells:
                     spells.remove(self)
 
@@ -526,7 +534,7 @@ num_vampires_sprite.pos = (116, 430)
 num_vampires_box = Rect(220, 405, 100, 50)
 necromancer = 10
 num_necromancers = 0
-num_necromancers_sprite = Actor("necromancer_enemy_placeholder")
+num_necromancers_sprite = Actor("necromancer_enemy")
 num_necromancers_sprite.scale = 0.75
 num_necromancers_sprite.pos = (116, 490)
 num_necromancers_box = Rect(220, 461, 100, 50)
@@ -543,8 +551,41 @@ changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 
 level_strength = -1
 wave_number = -1
+wave_number_box = Rect(50, 524, 300, 70)
+life_number = -1
+life_number_box = Rect(50, 14, 300, 70)
 
 selected_enemies_for_next_level = []
+dead_enemies = []
+
+def selected_spell():
+    global selected_spell_index
+
+    match selected_spell_index:
+        case 0:
+            direct_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 1:
+            penetrating_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 2:
+            bounce_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 3:
+            chain_shot_sprite.scale = SELECTED_SPELL_SCALE
+        case 4:
+            freeze_shot_sprite.scale = SELECTED_SPELL_SCALE
+
+def reset_spell_scale():
+    direct_shot_sprite.scale = 1
+    penetrating_shot_sprite.scale = 1
+    bounce_shot_sprite.scale = 1
+    chain_shot_sprite.scale = 1
+    freeze_shot_sprite.scale = 1
+
+def draw_spell():
+    direct_shot_sprite.draw()
+    penetrating_shot_sprite.draw()
+    bounce_shot_sprite.draw()
+    chain_shot_sprite.draw()
+    freeze_shot_sprite.draw()
 
 
 def select_enemies_for_next_level():
@@ -602,6 +643,9 @@ def reset_for_next_wave():
     global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_necromancers
     monster_gate.x = random.randint(-400, 400) + CENTER_X
     monster_gate.y = random.randint(-200, 200) + CENTER_Y
+    monster_gate.spawn_time = 500
+    on_field_enemies.clear()
+    dead_enemies.clear()
     changing_types_of_enemies.clear()
     changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
     selected_enemies_for_next_level.clear()
@@ -677,82 +721,6 @@ def attack(enemy):
         player.take_damage(enemy.damage)
         last_attack_time = time.time()
 
-def selected_spell():
-    global selected_spell_index
-
-    match selected_spell_index:
-        case 0:
-            direct_shot_sprite.scale = SELECTED_SPELL_SCALE
-        case 1:
-            penetrating_shot_sprite.scale = SELECTED_SPELL_SCALE
-        case 2:
-            bounce_shot_sprite.scale = SELECTED_SPELL_SCALE
-        case 3:
-            chain_shot_sprite.scale = SELECTED_SPELL_SCALE
-        case 4:
-            freeze_shot_sprite.scale = SELECTED_SPELL_SCALE
-
-def reset_spell_scale():
-    direct_shot_sprite.scale = 1
-    penetrating_shot_sprite.scale = 1
-    bounce_shot_sprite.scale = 1
-    chain_shot_sprite.scale = 1
-    freeze_shot_sprite.scale = 1
-
-def draw_spell():
-    global equipped_spell
-
-    formatted_spell_name = equipped_spell.replace("_", " ")
-
-    screen.draw.text(f"{formatted_spell_name} equipped", (720, 440), color="black")
-
-    direct_shot_sprite.draw()
-    penetrating_shot_sprite.draw()
-    bounce_shot_sprite.draw()
-    chain_shot_sprite.draw()
-    freeze_shot_sprite.draw()
-
-    screen.draw.text(f"owned", (720, 440), color="black")
-
-def player_hearts():
-    hearts = []
-    player_health = player.health
-
-    while player_health > 0:
-        if player_health - 2 >= 0:
-            player_health -= 2
-            hearts.append(full_heart)
-        elif player_health - 1 >= 0:
-            player_health -= 1
-            hearts.append(half_heart)
-    
-    while len(hearts) < 3:
-        hearts.append(empty_heart)
-
-    x_offset = 20
-    hearts.reverse()
-    for i, heart_img in enumerate(hearts):
-        heart = Actor(heart_img)
-        heart.pos = (WIDTH - (x_offset + i * 40), 20)
-        heart.scale = 2
-        heart.draw()
-
-def purchase_spells(spell):
-    global penetrating_owned, bounce_owned, chain_owned, freeze_owned
-
-    if spell == "penetrating_shot" and player.coins >= 30:
-        penetrating_owned = True
-        player.coins -= 30
-    elif spell == "bounce_shot" and player.coins >= 35:
-        bounce_owned = True
-        player.coins -= 35
-    elif spell == "chain_shot" and player.coins >= 60:
-        chain_owned = True
-        player.coins -= 60
-    elif spell == "bounce_shot" and player.coins >= 100:
-        bounce_owned = True
-        player.coins -= 100
-
 
 # Main game loop
 def draw():
@@ -769,7 +737,9 @@ def draw():
         for enemy in on_field_enemies:
             enemy.draw()
         for spell in spells:
-            spell.sprite.draw()
+            spell.sprite.draw()   
+        screen.draw.text(f"Health: {player.health}", (WIDTH - 90, 20), color="black") # type: ignore
+        screen.draw.text(f"Coins: {player.coins}", (WIDTH - 90, 60), color="black") # type: ignore
 
     if game_state == "Shop":
         screen.fill("dark green")
@@ -798,10 +768,13 @@ def draw():
             reset_spell_scale()
             selected_spell()
             spell_changed = False 
-        draw_spell()
-    player_hearts()
-    coin.draw()
-    screen.draw.text(f"{player.coins}", (WIDTH - 60, 53), color="black", fontsize=45) # type: ignore
+        draw_spell()  
+
+        #screen.draw.rect(wave_number_box, color = ("black") )
+        screen.draw.textbox("Wave: " + str(abs(wave_number)), wave_number_box, color = ("black"))
+
+        #screen.draw.rect(life_number_box, color = ("black") )
+        screen.draw.textbox("Life: " + str(abs(life_number)), life_number_box, color = ("black"))
 
 def on_mouse_down(pos):
     global last_spell_cast_time, spell_changed, equipped_spell, selected_spell_index
@@ -828,40 +801,31 @@ def on_mouse_down(pos):
             equipped_spell = "direct_shot"
             spell_changed = True
         elif penetrating_shot_sprite.collidepoint(pos):
-            if penetrating_owned:
-                equipped_spell = "penetrating_shot"
-                spell_changed = True
-            else:
-                purchase_spells("penetrating_shot")
+            equipped_spell = "penetrating_shot"
+            spell_changed = True
         elif bounce_shot_sprite.collidepoint(pos):
-            if bounce_owned:
-                equipped_spell = "bounce_shot"
-                spell_changed = True
-            else:
-                purchase_spells("bounce_shot")
+            equipped_spell = "bounce_shot"
+            spell_changed = True
         elif chain_shot_sprite.collidepoint(pos):
-            if penetrating_owned:
-                equipped_spell = "chain_shot"
-                spell_changed = True
-            else:
-                purchase_spells("chain_shot")
+            equipped_spell = "chain_shot"
+            spell_changed = True
         elif freeze_shot_sprite.collidepoint(pos):
-            if freeze_owned:
-                equipped_spell = "freeze_shot"
-                spell_changed = True
-            else:
-                purchase_spells("freeze_shot")
-
+            equipped_spell = "freeze_shot"
+            spell_changed = True
+        
         selected_spell_index = spell_types.index(equipped_spell)
-
-        print(equipped_spell)
 
 def on_key_up(key):
     global game_state, summoning_next_wave
     if game_state == "Shop":
         if key == keys.SPACE:
             game_state = "Fight"
+            #select_enemies_for_next_level()
             summoning_next_wave = True
+           #print(summoning_next_wave)
+            #reset_for_next_wave()
+            player.health += 1
+            #print(game_state)
 
            
 def update():
@@ -874,13 +838,14 @@ def update():
     if game_state == "Fight":
         if len(selected_enemies_for_next_level) > 0:
             if summoning_next_wave == True:
+                #print(len(selected_enemies_for_next_level))
                 summon_next_wave()
-
+                #print("hello")
+                #pass
         else:
             summoning_next_wave = False
             if len(on_field_enemies) <= 0:
                 game_state = "Shop"
-                player.coins += abs(wave_number)
                 reset_for_next_wave()
                 select_enemies_for_next_level()
 
@@ -898,7 +863,10 @@ def update():
 
 player = Player()
 
+spells = []
+equipped_spell = "direct_shot"
+
 select_enemies_for_next_level()
 
-clock.schedule_interval(update, 1.0 / 60.0) # type: ignore
+clock.schedule_interval(update, 1.0 / 45.0) # type: ignore
 pgzrun.go()
