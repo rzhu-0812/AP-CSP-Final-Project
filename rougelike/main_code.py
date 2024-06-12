@@ -52,33 +52,33 @@ selected_spell_index = spell_types.index(equipped_spell)
 spell_constants = {
     "direct_shot": {
         "speed": 10,
-        "range": 400,
+        "range": 350,
         "cooldown": 0.75,
-        "damage": 1
+        "damage": 0.75
     },
     "penetrating_shot": {
         "speed": 5,
-        "range": 250,
+        "range": 200,
         "cooldown": 1,
-        "damage": 1
+        "damage": 0.75
     },
     "bounce_shot": {
         "speed": 3,
-        "range": 10000,
+        "range": 500,
         "cooldown": 1,
-        "damage": 0.5
+        "damage": 0.25
     },
     "chain_shot": {
         "speed": 3,
         "range": 5000,
-        "cooldown": 1.5,
+        "cooldown": 3,
         "damage": 1
     },
     "freeze_shot": {
         "speed": 3,
         "range": 500,
         "cooldown": 0.5,
-        "damage": 0.5
+        "damage": 0.25
     }
 }
 
