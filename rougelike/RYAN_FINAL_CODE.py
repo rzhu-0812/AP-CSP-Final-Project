@@ -36,6 +36,10 @@ coin = Actor("coin")
 coin.pos = (WIDTH - 99, 65)
 coin.scale = 1.75
 
+upgrades_menu = Actor("upgrades")
+upgrades_menu.pos = (800, 200)
+upgrades_menu.scale = 0.5
+
 shop_coin = "coin"
 
 full_heart = "full_heart"
@@ -107,7 +111,7 @@ class Player:
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
         self.health = 6
-        self.coins = 30 + 120 + 35 + 100
+        self.coins = 0
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
@@ -752,10 +756,6 @@ def purchase_spells(spell):
     elif spell == "freeze_shot" and player.coins >= 35:
         freeze_owned = True
         player.coins -= 35
-    elif spell in [spell_types] and player.coins < 30:
-        screen.draw.text("don't have enough coins", (720, 440), color="black") # type: ignore
-        time.sleep(2)
-
 
 # Main game loop
 def draw():
@@ -790,6 +790,8 @@ def draw():
         num_necromancers_sprite.draw()
         screen.draw.textbox(str(num_necromancers), num_necromancers_box, color = ("black") ) # type: ignore
 
+        upgrades_menu.draw()
+
         spell_shop.draw()
         if spell_changed:
             reset_spell_scale()
@@ -798,7 +800,7 @@ def draw():
         draw_spell()
     player_hearts()
     coin.draw()
-    screen.draw.text(f"{player.coins}", (WIDTH - 60, 53), color="black", fontsize=45) # type: ignore
+    screen.draw.text(f"{player.coins}", (WIDTH - 80, 50), color="black", fontsize=45) # type: ignore
     screen.draw.text(f"Wave {abs(wave_number)}", (10, 10), color="black", fontsize=30) # type: ignore
 
 def on_mouse_down(pos):
