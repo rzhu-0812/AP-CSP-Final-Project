@@ -19,6 +19,11 @@ SELECTED_SPELL_SCALE = 2.0
 game_state = "Shop"
 spell_changed = True
 
+damage_upgrades = 0
+range_upgrades = 0
+reload_speed_upgrades = 0
+shield_upgrade = 0
+
 # Actors
 tiles = [Actor("tile", pos=((j * TILE_SIZE) + 50, (i * TILE_SIZE) + 50)) for i in range(int(HEIGHT / TILE_SIZE)) for j in range(int(WIDTH / 100))]
 enemies_in_next_round = Actor("enemies_in_next_round")
@@ -67,33 +72,33 @@ selected_spell_index = spell_types.index(equipped_spell)
 spell_constants = {
     "direct_shot": {
         "speed": 10,
-        "range": 400,
+        "range": 350,
         "cooldown": 0.75,
-        "damage": 1
+        "damage": 0.75
     },
     "penetrating_shot": {
         "speed": 5,
-        "range": 250,
+        "range": 200,
         "cooldown": 1,
-        "damage": 1
+        "damage": 0.75
     },
     "bounce_shot": {
         "speed": 3,
-        "range": 10000,
+        "range": 500,
         "cooldown": 1,
-        "damage": 0.5
+        "damage": 0.25
     },
     "chain_shot": {
         "speed": 3,
         "range": 5000,
-        "cooldown": 1.5,
+        "cooldown": 3,
         "damage": 1
     },
     "freeze_shot": {
         "speed": 3,
         "range": 500,
         "cooldown": 0.5,
-        "damage": 0.5
+        "damage": 0.25
     }
 }
 
@@ -406,7 +411,7 @@ class FreezeShot(Spell):
     def move(self):
         self.sprite.x += self.direction_x * self.speed
         self.sprite.y += self.direction_y * self.speed
-        self.range -= self.speed
+        self.range -= self.speed * 4
 
         if self.range <= 0:
             spells.remove(self)
@@ -821,7 +826,7 @@ def on_mouse_down(pos):
             else:
                 purchase_spells("bounce_shot")
         elif chain_shot_sprite.collidepoint(pos):
-            if penetrating_owned:
+            if chain_owned:
                 equipped_spell = "chain_shot"
                 spell_changed = True
             else:
