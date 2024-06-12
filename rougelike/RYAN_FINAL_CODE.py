@@ -4,7 +4,6 @@ import random
 import time
 
 from pgzhelper import Actor
-from pgzhelper import *
 
 # Constants
 WIDTH = 1200
@@ -225,12 +224,12 @@ def vampire_bat_summon(vampire_x, vampire_y):
         on_field_enemies.append(enemy)
 
 def necromancer_skeleton_summon(necromancer_x, necromancer_y):
-    summon_amount = random.randint(2, 6)
-    for _ in range(summon_amount):
-        enemy = Actor("skeleton_enemy")
-        enemy.type = "skeleton"
+    summon_amount = random.randint(2, 7)
+    if summon_amount == 7:
+        enemy = Actor("necromancer_enemy_placeholder")
+        enemy.type = "super_skeleton"
         enemy.distance_per_move = 3
-        enemy.health = 1
+        enemy.health = int(len(dead_enemies)/3)
         enemy.damage = 1
         enemy.attack_cooldown = 2
         enemy.is_frozen = False
@@ -238,6 +237,19 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         enemy.freeze_duration = 3
         enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
         on_field_enemies.append(enemy)
+    else:
+        for _ in range(summon_amount):
+            enemy = Actor("skeleton_enemy")
+            enemy.type = "skeleton"
+            enemy.distance_per_move = 3
+            enemy.health = 1
+            enemy.damage = 1
+            enemy.attack_cooldown = 2
+            enemy.is_frozen = False
+            enemy.last_freeze_time = 0
+            enemy.freeze_duration = 3
+            enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
+            on_field_enemies.append(enemy)
 
 
 # Spell Classes
@@ -282,6 +294,7 @@ class DirectShot(Spell):
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 if self in spells:
                     spells.remove(self)
 
@@ -300,6 +313,7 @@ class PenetratingShot(Spell):
                 self.enemies_hit.add(enemy)
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
 
 class BounceShot(Spell):
     def __init__(self, sprite):
@@ -332,6 +346,7 @@ class BounceShot(Spell):
             hit_enemy.health -= self.damage
             if hit_enemy.health <= 0:
                 on_field_enemies.remove(hit_enemy)
+                dead_enemies.append(enemy)
             self.enemies_hit.add(hit_enemy)
             self.bounce_off_enemy(hit_enemy)
             self.bounces += 1
@@ -386,6 +401,7 @@ class ChainShot(Spell):
                 self.chains += 1
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 self.target_next_enemy(enemy)
                 break
     
@@ -427,6 +443,7 @@ class FreezeShot(Spell):
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
+                    dead_enemies.append(enemy)
                 if self in spells:
                     spells.remove(self)
 
@@ -450,37 +467,37 @@ num_orcs = 0
 num_orcs_sprite = Actor("orc_enemy")
 num_orcs_sprite.scale = 0.75
 num_orcs_sprite.pos = (125, 190)
-num_orcs_box = Rect(220, 165, 100, 50)
+num_orcs_box = Rect(220, 165, 100, 50) # type: ignore
 goblin = 3
 num_goblins = 0
 num_goblins_sprite = Actor("goblin_enemy")
 num_goblins_sprite.scale = 0.75
 num_goblins_sprite.pos = (116, 250)
-num_goblins_box = Rect(220, 228, 100, 50)
+num_goblins_box = Rect(220, 228, 100, 50) # type: ignore
 bat = 1
 num_bats = 0
 num_bats_sprite = Actor("bat_enemy")
 num_bats_sprite.scale = 0.75
 num_bats_sprite.pos = (116, 310)
-num_bats_box = Rect(220, 291, 100, 50)
+num_bats_box = Rect(220, 291, 100, 50) # type: ignore
 assasin = 5
 num_assasins = 0
 num_assasins_sprite = Actor("assasin_enemy")
 num_assasins_sprite.scale = 0.75
 num_assasins_sprite.pos = (116, 370)
-num_assasins_box = Rect(220, 348, 100, 50)
+num_assasins_box = Rect(220, 348, 100, 50) # type: ignore
 vampire = 15
 num_vampires = 0
 num_vampires_sprite = Actor("vampire_enemy")
 num_vampires_sprite.scale = 0.75
 num_vampires_sprite.pos = (116, 430)
-num_vampires_box = Rect(220, 405, 100, 50)
+num_vampires_box = Rect(220, 405, 100, 50) # type: ignore
 necromancer = 10
 num_necromancers = 0
 num_necromancers_sprite = Actor("necromancer_enemy")
 num_necromancers_sprite.scale = 0.75
 num_necromancers_sprite.pos = (116, 490)
-num_necromancers_box = Rect(220, 461, 100, 50)
+num_necromancers_box = Rect(220, 461, 100, 50) # type: ignore
 speed_factor = 0.3
 
 monster_gate = Actor("monster_gate")
@@ -496,6 +513,7 @@ level_strength = -1
 wave_number = -1
 
 selected_enemies_for_next_level = []
+dead_enemies = []
 
 
 def select_enemies_for_next_level():
@@ -542,8 +560,6 @@ def select_enemies_for_next_level():
             num_vampires += 1
         elif enemy == necromancer:
             num_necromancers += 1
-
-    #print(len(selected_enemies_for_next_level))
     
 def reset_for_next_wave():
     global changing_types_of_enemies
@@ -553,6 +569,8 @@ def reset_for_next_wave():
     global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_necromancers
     monster_gate.x = random.randint(-400, 400) + CENTER_X
     monster_gate.y = random.randint(-200, 200) + CENTER_Y
+    on_field_enemies.clear()
+    dead_enemies.clear()
     changing_types_of_enemies.clear()
     changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
     selected_enemies_for_next_level.clear()
@@ -582,7 +600,6 @@ def summon_next_wave():
             elif enemy == bat:
                 on_field_enemies.append(create_enemy("bat"))
                 selected_enemies_for_next_level.remove(enemy)
-                #print("hello")
             elif enemy == assasin:
                 on_field_enemies.append(create_enemy("assasin"))
                 selected_enemies_for_next_level.remove(enemy)
@@ -655,7 +672,7 @@ def draw_spell():
 
     formatted_spell_name = equipped_spell.replace("_", " ")
 
-    screen.draw.text(f"{formatted_spell_name} equipped", (720, 440), color="black")
+    screen.draw.text(f"{formatted_spell_name} equipped", (720, 440), color="black") # type: ignore
 
     direct_shot_sprite.draw()
     penetrating_shot_sprite.draw()
@@ -663,38 +680,38 @@ def draw_spell():
     chain_shot_sprite.draw()
     freeze_shot_sprite.draw()
 
-    screen.draw.text("owned", (590, 530), color="black")
+    screen.draw.text("owned", (590, 530), color="black") # type: ignore
 
     if penetrating_owned:
-        screen.draw.text("owned", (683, 530), color="black")
+        screen.draw.text("owned", (683, 530), color="black") # type: ignore
     else:
         coin = Actor(shop_coin)
         coin.pos = (690, 540)
-        screen.draw.text("30", (705, 533), color="black")
+        screen.draw.text("30", (705, 533), color="black") # type: ignore
         coin.draw()
     
     if bounce_owned:
-        screen.draw.text("owned", (778, 530), color="black")
+        screen.draw.text("owned", (778, 530), color="black") # type: ignore
     else:
         coin = Actor(shop_coin)
         coin.pos = (789, 540)
-        screen.draw.text("100", (802, 533), color="black")
+        screen.draw.text("100", (802, 533), color="black") # type: ignore
         coin.draw()
     
     if chain_owned:
-        screen.draw.text("owned", (870, 530), color="black")
+        screen.draw.text("owned", (870, 530), color="black") # type: ignore
     else:
         coin = Actor(shop_coin)
         coin.pos = (880, 540)
-        screen.draw.text("120", (895, 533), color="black")
+        screen.draw.text("120", (895, 533), color="black") # type: ignore
         coin.draw()
     
     if freeze_owned:
-        screen.draw.text("owned", (966, 530), color="black")
+        screen.draw.text("owned", (966, 530), color="black") # type: ignore
     else:
         coin = Actor(shop_coin)
         coin.pos = (970, 540)
-        screen.draw.text("35", (985, 533), color="black")
+        screen.draw.text("35", (985, 533), color="black") # type: ignore
         coin.draw()
     
 def player_hearts():
@@ -736,7 +753,7 @@ def purchase_spells(spell):
         freeze_owned = True
         player.coins -= 35
     elif spell in [spell_types] and player.coins < 30:
-        screen.draw.text("don't have enough coins", (720, 440), color="black")
+        screen.draw.text("don't have enough coins", (720, 440), color="black") # type: ignore
         time.sleep(2)
 
 
@@ -758,26 +775,20 @@ def draw():
             spell.sprite.draw()
 
     if game_state == "Shop":
-        screen.fill("dark green")
+        screen.fill("dark green") # type: ignore
         enemies_in_next_round.draw()
         num_orcs_sprite.draw()
-        #screen.draw.rect(num_orcs_box, color = "black")
-        screen.draw.textbox(str(num_orcs), num_orcs_box, color = ("black") )
+        screen.draw.textbox(str(num_orcs), num_orcs_box, color = ("black") ) # type: ignore
         num_goblins_sprite.draw()
-        #screen.draw.rect(num_goblins_box, color = "black")
-        screen.draw.textbox(str(num_goblins), num_goblins_box, color = ("black") )
+        screen.draw.textbox(str(num_goblins), num_goblins_box, color = ("black") ) # type: ignore
         num_bats_sprite.draw()
-        #screen.draw.rect(num_bats_box, color = "black")
-        screen.draw.textbox(str(num_bats), num_bats_box, color = ("black") )
+        screen.draw.textbox(str(num_bats), num_bats_box, color = ("black") ) # type: ignore
         num_assasins_sprite.draw()
-        #screen.draw.rect(num_assasins_box, color = "black")
-        screen.draw.textbox(str(num_assasins), num_assasins_box, color = ("black") )
+        screen.draw.textbox(str(num_assasins), num_assasins_box, color = ("black") ) # type: ignore
         num_vampires_sprite.draw()
-        #screen.draw.rect(num_vampires_box, color = "black")
-        screen.draw.textbox(str(num_vampires), num_vampires_box, color = ("black") )
+        screen.draw.textbox(str(num_vampires), num_vampires_box, color = ("black") ) # type: ignore
         num_necromancers_sprite.draw()
-        #screen.draw.rect(num_necromancers_box, color = "black")
-        screen.draw.textbox(str(num_necromancers), num_necromancers_box, color = ("black") )
+        screen.draw.textbox(str(num_necromancers), num_necromancers_box, color = ("black") ) # type: ignore
 
         spell_shop.draw()
         if spell_changed:
@@ -788,7 +799,7 @@ def draw():
     player_hearts()
     coin.draw()
     screen.draw.text(f"{player.coins}", (WIDTH - 60, 53), color="black", fontsize=45) # type: ignore
-    screen.draw.text(f"Wave {abs(wave_number)}", (10, 10), color="black", fontsize=30)
+    screen.draw.text(f"Wave {abs(wave_number)}", (10, 10), color="black", fontsize=30) # type: ignore
 
 def on_mouse_down(pos):
     global last_spell_cast_time, spell_changed, equipped_spell, selected_spell_index
@@ -844,7 +855,7 @@ def on_mouse_down(pos):
 def on_key_up(key):
     global game_state, summoning_next_wave
     if game_state == "Shop":
-        if key == keys.SPACE:
+        if key == keys.SPACE: # type: ignore
             game_state = "Fight"
             summoning_next_wave = True
 
