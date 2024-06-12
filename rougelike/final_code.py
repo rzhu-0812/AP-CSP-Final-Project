@@ -145,7 +145,7 @@ class Player:
             self.sprite.x = min(self.sprite.x + 2, WIDTH - 38)
     def take_damage(self, damage):
         global wave_number, game_state, life_number
-        if sheild_upgrade <= damage:
+        if shield_upgrade <= damage:
             self.health -= damage - shield_upgrade
         if self.health <= 0:
             print("You Died")
