@@ -277,7 +277,7 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
         on_field_enemies.append(enemy)
     else:
         for i in range(summon_amount):
-            enemy = Actor("skeleton_enemy_placeholder")
+            enemy = Actor("skeleton_enemy")
             enemy.type = "skeleton"
             enemy.distance_per_move = 3
             enemy.health = 1
