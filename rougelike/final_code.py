@@ -317,7 +317,7 @@ def vamp_spawn(enemy):
 
         distance_to_player = math.sqrt((player.sprite.x - xPos) ** 2 + (player.sprite.y - yPos) ** 2)
 
-        if distance_to_player >= 300:
+        if distance_to_player >= 100 and distance_to_player <= 200:
             enemy.pos = (xPos, yPos)
             break
 
