@@ -103,7 +103,7 @@ spell_constants = {
         "range": 350,
         "cooldown": 0.75,
         "damage": 0.75,
-        "base_damage": 350,
+        "base_range": 350,
         "base_cooldown": 0.75,
         "base_damage": 0.75
     },
@@ -151,7 +151,7 @@ class Player:
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
         self.health = 6
-        self.coins = 1000
+        self.coins = 0
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
