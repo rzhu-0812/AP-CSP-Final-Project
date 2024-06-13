@@ -310,6 +310,17 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
             enemy.pos = (necromancer_x + random.randint(-50, 50), necromancer_y + random.randint(-50, 50))
             on_field_enemies.append(enemy)
 
+def vamp_spawn(enemy):
+    while True:
+        xPos = CENTER_X + random.randint(-500, 500)
+        yPos = CENTER_X + random.randint(-500, 500)
+
+        distance_to_player = math.sqrt((player.sprite.x - xPos) ** 2 + (player.sprite.y - yPos) ** 2)
+
+        if distance_to_player >= 300:
+            enemy.pos = (xPos, yPos)
+            break
+
 # Spell Classes
 class Spell:
     def __init__(self, sprite, spell_type):
@@ -348,8 +359,8 @@ class DirectShot(Spell):
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy):
                 if enemy.type == "vampire":
-                        vampire_bat_summon(enemy.x, enemy.y)
-                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
+                    vampire_bat_summon(enemy.x, enemy.y)
+                    vamp_spawn(enemy)
                 enemy.health -= self.damage
                 if enemy.health <= 0:
                     on_field_enemies.remove(enemy)
@@ -366,8 +377,8 @@ class PenetratingShot(Spell):
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
                 if enemy.type == "vampire":
-                        vampire_bat_summon(enemy.x, enemy.y)
-                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
+                    vampire_bat_summon(enemy.x, enemy.y)
+                    vamp_spawn(enemy)
                 enemy.health -= self.damage
                 self.enemies_hit.add(enemy)
                 if enemy.health <= 0:
@@ -400,8 +411,8 @@ class BounceShot(Spell):
         
         if hit_enemy:
             if enemy.type == "vampire":
-                        vampire_bat_summon(enemy.x, enemy.y)
-                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
+                vampire_bat_summon(enemy.x, enemy.y)
+                vamp_spawn(enemy)
             hit_enemy.health -= self.damage
             if hit_enemy.health <= 0:
                 on_field_enemies.remove(hit_enemy)
@@ -452,8 +463,8 @@ class ChainShot(Spell):
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy) and enemy not in self.enemies_hit:
                 if enemy.type == "vampire":
-                        vampire_bat_summon(enemy.x, enemy.y)
-                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
+                    vampire_bat_summon(enemy.x, enemy.y)
+                    vamp_spawn(enemy)
                 enemy.health -= self.damage
                 self.enemies_hit.add(enemy)
                 self.chains += 1
@@ -494,8 +505,8 @@ class FreezeShot(Spell):
         for enemy in on_field_enemies:
             if self.sprite.colliderect(enemy):
                 if enemy.type == "vampire":
-                        vampire_bat_summon(enemy.x, enemy.y)
-                        enemy.pos = (CENTER_X + random.randint(-500, 500), CENTER_Y + random.randint(-200, 200))
+                    vampire_bat_summon(enemy.x, enemy.y)
+                    vamp_spawn(enemy)
                 if not enemy.is_frozen:
                     self.freeze(enemy)
                 enemy.health -= self.damage
@@ -518,7 +529,7 @@ on_field_enemies = []
 
 # Functions
 def namestr(obj, namespace):
-    return [name for name in namespace if namespace[name] is obj]
+    return [name for name in namespace if namespace[name] is obj]    
 
 orc = 2
 num_orcs = 0
@@ -559,13 +570,12 @@ num_necromancers_box = Rect(220, 461, 100, 50) # type: ignore
 speed_factor = 0.3
 
 monster_gate = Actor("monster_gate")
-monster_gate.x = random.randint(-400, 400) + CENTER_X
-monster_gate.y = random.randint(-200, 200) + CENTER_Y
 monster_gate.spawn_time = 50
 
 unchanging_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 changing_types_of_enemies = [orc, goblin, bat, assasin, vampire, necromancer]
 
+player = Player()
 
 level_strength = -1
 wave_number = -1
@@ -576,6 +586,18 @@ life_number_box = Rect(50, 14, 300, 70) # type: ignore
 selected_enemies_for_next_level = []
 dead_enemies = []
 
+def monster_gate_spawn(player):
+    while True:
+        xPos = random.randint(-400, 400) + CENTER_X
+        yPos = random.randint(-200, 200) + CENTER_Y
+
+        distance_to_player = math.sqrt((player.sprite.x - xPos) ** 2 + (player.sprite.y - yPos) ** 2)
+
+        if distance_to_player >= 300:
+            monster_gate.pos = (xPos, yPos)
+            break
+
+monster_gate_spawn(player)
 
 def select_enemies_for_next_level():
 
@@ -628,8 +650,7 @@ def reset_for_next_wave():
     global wave_number
     global level_strength
     global num_orcs, num_goblins, num_bats, num_assasins, num_vampires, num_necromancers
-    monster_gate.x = random.randint(-400, 400) + CENTER_X
-    monster_gate.y = random.randint(-200, 200) + CENTER_Y
+    monster_gate_spawn(player)
     on_field_enemies.clear()
     dead_enemies.clear()
     changing_types_of_enemies.clear()
@@ -838,7 +859,7 @@ def update_spells():
 
     elif reload_speed_bought:
         for spell in spell_types:
-            spell_constants[equipped_spell]["cooldown"] = spell_constants[equipped_spell]["base_cooldown"] + reload_speed_upgrades * -0.05
+            spell_constants[equipped_spell]["cooldown"] = spell_constants[equipped_spell]["base_cooldown"] + reload_speed_upgrades * -0.025
         range_bought = False
 
 def draw_upgrades():
@@ -1037,8 +1058,6 @@ def update():
 
     if player.health > 6:
         player.health = 6
-
-player = Player()
 
 select_enemies_for_next_level()
 
