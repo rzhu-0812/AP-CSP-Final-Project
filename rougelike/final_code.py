@@ -839,8 +839,6 @@ def update_spells():
     elif reload_speed_bought:
         for spell in spell_types:
             spell_constants[equipped_spell]["cooldown"] = spell_constants[equipped_spell]["base_cooldown"] + reload_speed_upgrades * -0.05
-            print(spell_constants[equipped_spell]["cooldown"])
-            print(spell_constants[equipped_spell]["base_cooldown"])
         range_bought = False
 
 def draw_upgrades():
