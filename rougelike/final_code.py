@@ -3,7 +3,7 @@ import math
 import random
 import time
 
-from pgzhelper import Actor
+from pgzhelper import Actor # type: ignore
 
 # Constants
 WIDTH = 1200
