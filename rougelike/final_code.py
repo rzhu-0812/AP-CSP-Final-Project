@@ -151,7 +151,7 @@ class Player:
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
         self.health = 6
-        self.coins = 1000
+        self.coins = 0
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
