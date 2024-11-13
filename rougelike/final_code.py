@@ -3,7 +3,7 @@ import math
 import random
 import time
 
-from pgzhelper import Actor
+from pgzhelper import Actor # type: ignore
 
 # Constants
 WIDTH = 1200
@@ -151,7 +151,7 @@ class Player:
         self.sprite = Actor("player")
         self.sprite.pos = (38, 38)
         self.health = 6
-        self.coins = 0
+        self.coins = 1000
     
     def player_movement(self):
         if keyboard.W or keyboard.up: # type: ignore
@@ -312,8 +312,8 @@ def necromancer_skeleton_summon(necromancer_x, necromancer_y):
 
 def vamp_spawn(enemy):
     while True:
-        xPos = CENTER_X + random.randint(-500, 500)
-        yPos = CENTER_X + random.randint(-500, 500)
+        xPos = CENTER_X + random.randint(-300, 300)
+        yPos = CENTER_X + random.randint(-300, 300)
 
         distance_to_player = math.sqrt((player.sprite.x - xPos) ** 2 + (player.sprite.y - yPos) ** 2)
 
